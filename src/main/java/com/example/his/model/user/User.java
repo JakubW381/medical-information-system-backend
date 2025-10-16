@@ -1,12 +1,14 @@
 package com.example.his.model.user;
 
 
+import com.example.his.model.Document;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
@@ -29,6 +31,16 @@ public class User implements UserDetails {
 
     @Enumerated(EnumType.STRING)
     private Role role;
+
+    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime lastLogin;
+
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    private PatientProfile patientProfile;
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    private DoctorProfile doctorProfile;
 
 
     @Override

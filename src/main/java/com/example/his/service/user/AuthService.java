@@ -3,6 +3,7 @@ package com.example.his.service.user;
 import com.example.his.config.util.JWTService;
 import com.example.his.dto.AuthRequestDto;
 import com.example.his.dto.RegisterRequestDto;
+import com.example.his.model.user.PatientProfile;
 import com.example.his.model.user.Role;
 import com.example.his.model.user.User;
 import com.example.his.repository.UserRepository;
@@ -57,6 +58,11 @@ public class AuthService {
         user.setPesel(registerRequestDto.getPesel());
         user.setPassword(passwordEncoder.encode(registerRequestDto.getPassword()));
         user.setRole(Role.ROLE_USER);
+
+        PatientProfile patientProfile = new PatientProfile();
+
+        patientProfile.setUser(user);
+        user.setPatientProfile(patientProfile);
 
         userRepository.save(user);
         return RegisterResponse.SUCCESS;

@@ -3,6 +3,9 @@ package com.example.his.controllers;
 import com.example.his.config.util.JWTService;
 import com.example.his.dto.AuthRequestDto;
 import com.example.his.dto.RegisterRequestDto;
+import com.example.his.model.user.Role;
+import com.example.his.model.user.User;
+import com.example.his.repository.UserRepository;
 import com.example.his.service.user.RegisterResponse;
 import com.example.his.service.user.AuthService;
 import jakarta.servlet.http.Cookie;
@@ -10,14 +13,14 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -34,6 +37,9 @@ public class AuthController {
 
     @Autowired
     private AuthService authService;
+
+    @Autowired
+    private UserRepository userRepository;
 
 
     @PostMapping("/login")
@@ -81,5 +87,19 @@ public class AuthController {
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body("Unexpected registration Error");
+    }
+
+    @GetMapping("/role")
+    public ResponseEntity<Role> getRole() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
+
+        User user = (User) authentication.getPrincipal();
+        Role role = user.getRole();
+
+        return ResponseEntity.ok(role);
     }
 }
