@@ -1,6 +1,7 @@
 package com.example.his.model.user;
 
 
+import com.example.his.dto.SafeUserDto;
 import com.example.his.model.Document;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -56,5 +57,17 @@ public class User implements UserDetails {
     @Override
     public String getUsername() {
         return email;
+    }
+
+    public SafeUserDto toSafeUserDto(){
+        SafeUserDto safeUserDto = new SafeUserDto();
+        safeUserDto.setName(name);
+        safeUserDto.setLastName(lastName);
+        if (getRole() == Role.ROLE_DOCTOR){
+            safeUserDto.setPosition(doctorProfile.getPosition());
+            safeUserDto.setDepartment(doctorProfile.getDepartment());
+            safeUserDto.setSpecialization(doctorProfile.getSpecialization());
+        }
+        return safeUserDto;
     }
 }

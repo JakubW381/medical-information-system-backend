@@ -7,12 +7,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.print.Doc;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class DocumentService {
@@ -47,8 +49,7 @@ public class DocumentService {
         documentRepository.save(document);
     }
 
-
-
-
-
+    public List<Document> documentsByPatient(User patient){
+        return documentRepository.findByPatientId(patient.getId());
+    }
 }
