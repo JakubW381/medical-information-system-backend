@@ -6,6 +6,7 @@ import com.example.his.model.user.DoctorProfile;
 import com.example.his.model.user.PatientProfile;
 import com.example.his.model.user.User;
 import com.example.his.repository.UserRepository;
+import com.example.his.service.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,35 +28,28 @@ public class DoctorController {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private UserService userService;
+
     @PostMapping("/update-patient")
-    public ResponseEntity<?> updatePatientProfile(
-            @RequestBody UserProfileDto dto,
-            @AuthenticationPrincipal User doctor) {
+    public ResponseEntity<?> updatePatientProfile(@RequestBody UserProfileDto dto) {
 
         User patient = userRepository.findById(dto.getPatientId())
                 .orElseThrow(() -> new UsernameNotFoundException("Patient not found"));
 
-        PatientProfile profile = patient.getPatientProfile();
-
-        profile.setDateOfBirth(dto.getDateOfBirth());
-        profile.setGender(dto.getGender());
-        profile.setAddress(dto.getAddress());
-        profile.setPhoneNumber(dto.getPhoneNumber());
-        profile.setBloodType(dto.getBloodType());
-        profile.setAllergies(dto.getAllergies());
-        profile.setChronicDiseases(dto.getChronicDiseases());
-        profile.setMedications(dto.getMedications());
-        profile.setInsuranceNumber(dto.getInsuranceNumber());
-
-        userRepository.save(patient);
+        userService.updatePatientProfile(patient,dto);
 
         return ResponseEntity.ok("Patient profile updated");
     }
 
 
     @PostMapping("/update-doctor")
-    public ResponseEntity<?> updateDoctorProfile(@RequestBody DoctorProfileDto dto,
-                                                 @AuthenticationPrincipal User doctor) {
+    public ResponseEntity<?> updateDoctorProfile(@RequestBody DoctorProfileDto dto) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        User doctor = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("Patient not found"));
+
         DoctorProfile profile = doctor.getDoctorProfile();
         profile.setDepartment(dto.getDepartment());
         profile.setPosition(dto.getPosition());

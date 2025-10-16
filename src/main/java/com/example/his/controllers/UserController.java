@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -48,22 +49,31 @@ public class UserController {
     }
 
     @PostMapping("/update-patient")
-    public ResponseEntity<?> updatePatientProfile(@RequestBody UserProfileDto dto, @AuthenticationPrincipal User patient) {
+    public ResponseEntity<?> updatePatientProfile(@RequestBody UserProfileDto dto) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        User patient = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("Patient not found"));
         userService.updatePatientProfile(patient,dto);
         return ResponseEntity.ok("Patient profile updated");
     }
 
 
     @GetMapping("/patient")
-    public ResponseEntity<?> getPatientProfile(@AuthenticationPrincipal User patient){
+    public ResponseEntity<?> getPatientProfile(){
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        User patient = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("Patient not found"));
         return ResponseEntity.ok(patient.getPatientProfile().toDto());
     }
 
     @PostMapping("/upload")
-    public ResponseEntity<?> uploadFiles(@RequestParam("files") MultipartFile[] files,
-                                         @AuthenticationPrincipal User sender) {
+    public ResponseEntity<?> uploadFiles(@RequestParam("files") MultipartFile[] files) {
 
-        User patient = userRepository.findById(sender.getId())
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        User patient = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Patient not found"));
 
         for (MultipartFile file : files) {
@@ -106,7 +116,7 @@ public class UserController {
                         ));
                 publicId = (String) uploadResult.get("public_id");
 
-                documentService.saveFile(file, sender, sender,publicId);
+                documentService.saveFile(file, patient, patient,publicId);
 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -118,7 +128,12 @@ public class UserController {
     }
 
     @GetMapping("/gallery")
-    public ResponseEntity<List<DocumentDto>> showGallery(@AuthenticationPrincipal User patient){
+    public ResponseEntity<List<DocumentDto>> showGallery(){
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        User patient = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
         List<Document> documents = documentService.documentsByPatient(patient);
         List<DocumentDto> dtos = new ArrayList<>();
         for (Document doc : documents){
