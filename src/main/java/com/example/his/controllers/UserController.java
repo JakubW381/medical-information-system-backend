@@ -2,11 +2,14 @@ package com.example.his.controllers;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
+import com.example.his.dto.DocumentDto;
 import com.example.his.dto.UserProfileDto;
+import com.example.his.model.Document;
 import com.example.his.model.user.PatientProfile;
 import com.example.his.model.user.User;
 import com.example.his.repository.UserRepository;
 import com.example.his.service.DocumentService;
+import com.example.his.service.user.UserService;
 import net.coobird.thumbnailator.Thumbnails;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.PDFRenderer;
@@ -21,6 +24,8 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -29,6 +34,9 @@ public class UserController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private UserService userService;
 
     @Autowired
     private DocumentService documentService;
@@ -40,24 +48,8 @@ public class UserController {
     }
 
     @PostMapping("/update-patient")
-    public ResponseEntity<?> updatePatientProfile(
-            @RequestBody UserProfileDto dto,
-            @AuthenticationPrincipal User patient) {
-
-        PatientProfile profile = patient.getPatientProfile();
-
-        profile.setDateOfBirth(dto.getDateOfBirth());
-        profile.setGender(dto.getGender());
-        profile.setAddress(dto.getAddress());
-        profile.setPhoneNumber(dto.getPhoneNumber());
-        profile.setBloodType(dto.getBloodType());
-        profile.setAllergies(dto.getAllergies());
-        profile.setChronicDiseases(dto.getChronicDiseases());
-        profile.setMedications(dto.getMedications());
-        profile.setInsuranceNumber(dto.getInsuranceNumber());
-
-        userRepository.save(patient);
-
+    public ResponseEntity<?> updatePatientProfile(@RequestBody UserProfileDto dto, @AuthenticationPrincipal User patient) {
+        userService.updatePatientProfile(patient,dto);
         return ResponseEntity.ok("Patient profile updated");
     }
 
@@ -80,7 +72,7 @@ public class UserController {
                 String extension = originalFilename
                         .substring(originalFilename.lastIndexOf(".") + 1).toLowerCase();
 
-                String publicId = null;
+                String publicId;
                 BufferedImage img = null;
 
                 switch (extension) {
@@ -122,11 +114,22 @@ public class UserController {
                         .body("Error with file processing: " + file.getOriginalFilename());
             }
         }
-        return ResponseEntity.ok("Files processed.");
+        return ResponseEntity.ok("Files processed");
     }
 
     @GetMapping("/gallery")
-    public ResponseEntity<?> showGallery(@AuthenticationPrincipal User sender){
-
+    public ResponseEntity<List<DocumentDto>> showGallery(@AuthenticationPrincipal User patient){
+        List<Document> documents = documentService.documentsByPatient(patient);
+        List<DocumentDto> dtos = new ArrayList<>();
+        for (Document doc : documents){
+            String signedUrl = cloudinary.url()
+                    .resourceType("image")
+                    .type("private")
+                    .signed(true)
+                    .generate(doc.getThumbnailPublicId());
+            DocumentDto dto = doc.toDto(signedUrl);
+            dtos.add(dto);
+        }
+        return ResponseEntity.ok(dtos);
     }
 }
