@@ -2,7 +2,6 @@ package com.example.his.model.user;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import org.springframework.data.annotation.Id;
 
 @Data
 @Entity

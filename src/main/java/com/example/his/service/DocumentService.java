@@ -23,7 +23,7 @@ public class DocumentService {
     private DocumentRepository documentRepository;
 
     public void saveFile(MultipartFile file, User patient, User sender, String publicId) throws IOException {
-        String uploadDir = "uploads/documents/"+patient.getPesel();
+        String uploadDir = "uploads/documents/"+patient.getPesel()+"/";
         File dir = new File(uploadDir);
 
         if (!dir.exists()) {
