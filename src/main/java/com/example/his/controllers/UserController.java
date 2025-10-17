@@ -70,10 +70,10 @@ public class UserController {
         return ResponseEntity.ok("Files processed");
     }
 
-    @GetMapping("/gallery")
-    public ResponseEntity<PageResponse<DocumentTNDto>> showGallery(DocumentPageRequest pageDto){
+    @PostMapping("/gallery")
+    public ResponseEntity<PageResponse<DocumentTNDto>> showGallery(@RequestBody DocumentPageRequest pageDto){
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
-
+        System.out.println(pageDto);
         User patient = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 

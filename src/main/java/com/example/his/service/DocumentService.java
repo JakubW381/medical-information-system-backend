@@ -76,7 +76,6 @@ public class DocumentService {
                     img = renderer.renderImageWithDPI(0, 150);
                 }
                 break;
-
             default:
                 System.out.println("Unsupported file format: " + extension);
                 break;

@@ -61,6 +61,7 @@ public class User implements UserDetails {
 
     public SafeUserDto toSafeUserDto(){
         SafeUserDto safeUserDto = new SafeUserDto();
+        safeUserDto.setId(id);
         safeUserDto.setName(name);
         safeUserDto.setLastName(lastName);
         if (getRole() == Role.ROLE_DOCTOR){

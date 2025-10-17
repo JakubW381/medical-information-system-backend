@@ -2,6 +2,7 @@ package com.example.his.controllers;
 
 import com.example.his.dto.*;
 import com.example.his.dto.request.DocumentPageRequest;
+import com.example.his.dto.request.PatientsPageRequest;
 import com.example.his.dto.response.PageResponse;
 import com.example.his.model.Document;
 import com.example.his.model.user.DoctorProfile;
@@ -39,8 +40,8 @@ public class DoctorController {
         return ResponseEntity.ok(patient.getPatientProfile().toDto());
     }
 
-    @GetMapping("/patient/documents/{id}")
-    public ResponseEntity<PageResponse<DocumentTNDto>> getPatientDocuments(@PathVariable Long id, DocumentPageRequest pageDto){
+    @PostMapping("/patient/documents/{id}")
+    public ResponseEntity<PageResponse<DocumentTNDto>> getPatientDocuments(@PathVariable Long id, @RequestBody DocumentPageRequest pageDto){
         User patient = userRepository.findById(id)
                 .orElseThrow(() -> new UsernameNotFoundException("Patient not found"));
 
@@ -50,13 +51,14 @@ public class DoctorController {
         return ResponseEntity.ok(dtos);
     }
 
-    //    @GetMapping("/patients")
-    //    public ResponseEntity<PageResponse<PatientProfileDto>> getPatients(@PathVariable Long id, DocumentPageRequest pageDto){
-    //
-    //          TODO
-    //
-    //        return ResponseEntity.ok(dtos);
-    //    }
+    @PostMapping("/patients")
+    public ResponseEntity<PageResponse<PatientProfileDto>> getPatients(@RequestBody PatientsPageRequest pageDto){
+
+        PageResponse<User> users = userService.getPatients(pageDto);
+        PageResponse<PatientProfileDto> dtos = userService.generateDtos(users);
+
+        return ResponseEntity.ok(dtos);
+    }
 
     @PostMapping("/update-patient")
     public ResponseEntity<?> updatePatientProfile(@RequestBody PatientProfileDto dto) {

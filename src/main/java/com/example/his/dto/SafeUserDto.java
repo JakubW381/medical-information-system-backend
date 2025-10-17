@@ -8,6 +8,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SafeUserDto {
+
+    private Long id;
     private String name;
     private String lastName;
 
