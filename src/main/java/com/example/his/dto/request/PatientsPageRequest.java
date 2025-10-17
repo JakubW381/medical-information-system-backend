@@ -1,17 +1,13 @@
-package com.example.his.dto;
+package com.example.his.dto.request;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
-public class UserProfileDto {
-
-    private Long patientId;
+public class PatientsPageRequest {
+    private int page;
+    private String search;
 
     private LocalDate dateOfBirth;
     private String gender;
