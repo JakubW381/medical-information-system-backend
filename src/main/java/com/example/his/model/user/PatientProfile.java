@@ -1,6 +1,6 @@
 package com.example.his.model.user;
 
-import com.example.his.dto.UserProfileDto;
+import com.example.his.dto.PatientProfileDto;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -19,7 +19,9 @@ public class PatientProfile {
     private User user;
 
     private LocalDate dateOfBirth;
-    private String gender;
+
+    @Enumerated(EnumType.STRING)
+    private Gender gender;
     private String address;
     private String phoneNumber;
 
@@ -29,11 +31,14 @@ public class PatientProfile {
     private String medications;
     private String insuranceNumber;
 
-    public UserProfileDto toDto(){
-        return new UserProfileDto(
+    public PatientProfileDto toDto(){
+        return new PatientProfileDto(
                 id,
+                user.getName(),
+                user.getLastName(),
+                user.getPesel(),
                 dateOfBirth,
-                gender,
+                gender.name(),
                 address,
                 phoneNumber,
                 bloodType,

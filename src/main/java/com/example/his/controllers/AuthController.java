@@ -1,7 +1,7 @@
 package com.example.his.controllers;
 
 import com.example.his.config.util.JWTService;
-import com.example.his.dto.AuthRequestDto;
+import com.example.his.dto.request.AuthRequestRequest;
 import com.example.his.dto.RegisterRequestDto;
 import com.example.his.model.user.Role;
 import com.example.his.model.user.User;
@@ -13,12 +13,10 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -43,7 +41,7 @@ public class AuthController {
 
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody AuthRequestDto authRequestDto , HttpServletResponse response){
+    public ResponseEntity<?> login(@RequestBody AuthRequestRequest authRequestDto , HttpServletResponse response){
         Authentication authentication = authManager
                 .authenticate(new UsernamePasswordAuthenticationToken(authRequestDto.getEmail(),authRequestDto.getPassword()));
 

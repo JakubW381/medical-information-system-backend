@@ -11,6 +11,9 @@ public class DoctorProfileDto {
 
     private Long id;
 
+    private String name;
+    private String lastName;
+
     private String specialization;
     private String department;
     private String position;

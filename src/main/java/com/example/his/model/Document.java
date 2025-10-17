@@ -1,6 +1,6 @@
 package com.example.his.model;
 
-import com.example.his.dto.DocumentDto;
+import com.example.his.dto.DocumentTNDto;
 import com.example.his.model.user.PatientProfile;
 import com.example.his.model.user.User;
 import jakarta.persistence.*;
@@ -39,8 +39,8 @@ public class Document {
     private String filePath;
     private String thumbnailPublicId;
 
-    public DocumentDto toDto(String thumbnailSignedURL){
-        return new DocumentDto(
+    public DocumentTNDto toDto(String thumbnailSignedURL){
+        return new DocumentTNDto(
                 id,
                 patient.getUser().toSafeUserDto(),
                 sender.toSafeUserDto(),

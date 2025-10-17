@@ -1,7 +1,7 @@
 package com.example.his.service.user;
 
 import com.example.his.config.util.JWTService;
-import com.example.his.dto.AuthRequestDto;
+import com.example.his.dto.request.AuthRequestRequest;
 import com.example.his.dto.RegisterRequestDto;
 import com.example.his.model.user.PatientProfile;
 import com.example.his.model.user.Role;
@@ -27,7 +27,7 @@ public class AuthService {
     private JWTService jwtService;
 
 
-    public Cookie login(AuthRequestDto dto){
+    public Cookie login(AuthRequestRequest dto){
 
         User user = userRepository.findByEmail(dto.getEmail()).get();
         String jwtToken = jwtService.generateToken(user);

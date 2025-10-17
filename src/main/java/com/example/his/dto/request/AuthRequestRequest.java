@@ -1,9 +1,9 @@
-package com.example.his.dto;
+package com.example.his.dto.request;
 
 import lombok.Data;
 
 @Data
-public class AuthRequestDto {
+public class AuthRequestRequest {
     private String email;
     private String password;
 }
