@@ -51,19 +51,19 @@
 		</dependency>
 
 		<!--Lucene-->
-		<dependency>
-			<groupId>org.apache.lucene</groupId>
-			<artifactId>lucene-queryparser</artifactId>
-			<version>7.1.0</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.lucene</groupId>
-			<artifactId>lucene-core</artifactId>
-			<version>7.1.0</version>
-		</dependency>
+<!--		<dependency>-->
+<!--			<groupId>org.apache.lucene</groupId>-->
+<!--			<artifactId>lucene-queryparser</artifactId>-->
+<!--			<version>7.1.0</version>-->
+<!--		</dependency>-->
+<!--		<dependency>-->
+<!--			<groupId>org.apache.lucene</groupId>-->
+<!--			<artifactId>lucene-core</artifactId>-->
+<!--			<version>7.1.0</version>-->
+<!--		</dependency>-->
 
 
-		<!--file thumbnails-->
+		<!--File Thumbnails-->
 		<dependency>
 			<groupId>net.coobird</groupId>
 			<artifactId>thumbnailator</artifactId>
@@ -80,14 +80,18 @@
 			<version>2.0.0</version>
 		</dependency>
 
-
-		<!--DICOM-->
+		<!--Email-->
 		<dependency>
-			<groupId>com.idrsolutions</groupId>
-			<artifactId>jdeli</artifactId>
-			<version>1.0</version>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-mail</artifactId>
 		</dependency>
 
+		<!--Pass Generator-->
+		<dependency>
+			<groupId>org.passay</groupId>
+			<artifactId>passay</artifactId>
+			<version>1.6.6</version>
+		</dependency>
 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

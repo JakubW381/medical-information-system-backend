@@ -2,6 +2,7 @@ package com.example.his.controllers;
 
 import com.example.his.dto.*;
 import com.example.his.dto.request.DocumentPageRequest;
+import com.example.his.dto.request.PatientRegisterRequest;
 import com.example.his.dto.request.PatientsPageRequest;
 import com.example.his.dto.response.PageResponse;
 import com.example.his.model.Document;
@@ -9,6 +10,8 @@ import com.example.his.model.user.DoctorProfile;
 import com.example.his.model.user.User;
 import com.example.his.repository.UserRepository;
 import com.example.his.service.DocumentService;
+import com.example.his.service.user.AuthService;
+import com.example.his.service.user.RegisterResponse;
 import com.example.his.service.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -31,6 +34,9 @@ public class DoctorController {
 
     @Autowired
     private DocumentService documentService;
+
+    @Autowired
+    private AuthService authService;
 
 
     @GetMapping("/patient/{id}")
@@ -106,5 +112,33 @@ public class DoctorController {
             }
         }
         return ResponseEntity.ok("Files processed");
+    }
+
+
+    @PostMapping("/register-patient")
+    public ResponseEntity<?> registerPatient(@RequestBody PatientRegisterRequest patientRegisterRequest){
+
+        RegisterResponse response = authService.registerPatient(patientRegisterRequest);
+
+        if (response == RegisterResponse.EMAIL_EXISTS) {
+            return ResponseEntity
+                    .status(HttpStatus.CONFLICT)
+                    .body("User with this email address already exists");
+        }
+        if (response == RegisterResponse.PESEL_EXISTS) {
+            return ResponseEntity
+                    .status(HttpStatus.CONFLICT)
+                    .body("User with this PESEL already exists");
+        }
+
+        if (response == RegisterResponse.SUCCESS){
+            return ResponseEntity
+                    .status(HttpStatus.CREATED)
+                    .body("Signed up successfully");
+        }
+
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Unexpected registration Error");
     }
 }

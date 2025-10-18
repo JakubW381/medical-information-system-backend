@@ -63,6 +63,7 @@ public class AuthController {
         return ResponseEntity.ok("Logged Out");
     }
 
+    // temporary
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequestDto registerRequestDto){
         RegisterResponse response = authService.register(registerRequestDto);
