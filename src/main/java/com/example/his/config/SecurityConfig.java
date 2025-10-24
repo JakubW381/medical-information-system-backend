@@ -49,10 +49,11 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests( auth ->
                         {
-                            auth.requestMatchers("/api/auth/*").permitAll();
-                            auth.requestMatchers("/api/admin/*").hasRole("ADMIN");
-                            auth.requestMatchers("/api/doc/*").hasRole("DOCTOR");
-                            auth.requestMatchers("/api/user/*").authenticated();
+                            auth.requestMatchers("/api/auth/**").permitAll();
+                            auth.requestMatchers("/api/public/**").permitAll();
+                            auth.requestMatchers("/api/admin/**").hasRole("ADMIN");
+                            auth.requestMatchers("/api/doc/**").hasAnyRole("DOCTOR", "ADMIN");
+                            auth.requestMatchers("/api/user/**").authenticated();
                         }
                 )
                 .sessionManagement((session) -> session

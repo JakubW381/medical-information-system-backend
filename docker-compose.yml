@@ -10,12 +10,12 @@ services:
     ports:
       - "6666:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U ${DB_USERNAME}" ]
       interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 1
 
   his_app:
     build: .

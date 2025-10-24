@@ -8,6 +8,7 @@ import com.example.his.dto.response.PageResponse;
 import com.example.his.model.Document;
 import com.example.his.model.user.DoctorProfile;
 import com.example.his.model.user.User;
+import com.example.his.repository.DocumentRepository;
 import com.example.his.repository.UserRepository;
 import com.example.his.service.DocumentService;
 import com.example.his.service.user.AuthService;
@@ -20,6 +21,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.io.IOException;
 
 
 @RestController
@@ -38,6 +42,9 @@ public class DoctorController {
     @Autowired
     private AuthService authService;
 
+    @Autowired
+    private DocumentRepository documentRepository;
+
 
     @GetMapping("/patient/{id}")
     public ResponseEntity<?> getPatientProfile(@PathVariable Long id){
@@ -55,6 +62,19 @@ public class DoctorController {
         PageResponse<DocumentTNDto> dtos = documentService.generateDtos(documents);
 
         return ResponseEntity.ok(dtos);
+    }
+
+    @GetMapping("/patient/document/{id}")
+    public ResponseEntity<String> getPatientDocument(@PathVariable Long id){
+        Document document = documentRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("No document with this Id"));
+
+        try {
+            String base64File = documentService.getFileBase64(document);
+            return ResponseEntity.ok(base64File);
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to read file", e);
+        }
     }
 
     @PostMapping("/patients")

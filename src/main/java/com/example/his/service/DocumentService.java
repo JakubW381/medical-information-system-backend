@@ -12,11 +12,17 @@ import com.example.his.service.search.SearchService;
 import net.coobird.thumbnailator.Thumbnails;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.PDFRenderer;
+import org.dcm4che3.imageio.plugins.dcm.DicomImageReader;
+import org.dcm4che3.imageio.plugins.dcm.DicomImageReaderSpi;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
 import javax.imageio.ImageIO;
+import javax.imageio.stream.ImageInputStream;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -24,8 +30,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
@@ -38,12 +46,8 @@ public class DocumentService {
     @Autowired
     private SearchService searchService;
 
-    /*
-     *       Cloudinary for now
-     *       then we can switch to Google Cloud Storage
-     *       (free plan for 90 days, allows private signed urls with expiration time)
-     *       for private URLs for thumbnails of documents
-     * */
+    @Value("${SECRET_SHA}")
+    private String secret;
 
     private final Cloudinary cloudinary;
 
@@ -51,63 +55,52 @@ public class DocumentService {
         this.cloudinary = cloudinary;
     }
 
-    public void saveFile(MultipartFile file, User patient, User sender) throws IOException {
-
+    public void saveFile(MultipartFile file, User patient, User sender) throws Exception {
         String originalFilename = file.getOriginalFilename();
-        if (originalFilename == null) {
-            throw new IllegalArgumentException("File must have a name");
-        }
+        if (originalFilename == null) throw new IllegalArgumentException("File must have a name");
 
         String extension = originalFilename.substring(originalFilename.lastIndexOf(".") + 1).toLowerCase();
         BufferedImage img = null;
 
-        switch (extension) {
-            case "jpg":
-            case "jpeg":
-            case "png":
-                img = Thumbnails.of(file.getInputStream())
-                        .size(200, 200)
-                        .asBufferedImage();
-                break;
-
-            case "pdf":
-                try (PDDocument document = PDDocument.load(file.getInputStream())) {
-                    PDFRenderer renderer = new PDFRenderer(document);
-                    img = renderer.renderImageWithDPI(0, 150);
+        try {
+            switch (extension) {
+                case "jpg", "jpeg", "png" -> img = Thumbnails.of(file.getInputStream()).size(200, 200).asBufferedImage();
+                case "pdf" -> {
+                    try (PDDocument document = PDDocument.load(file.getInputStream())) {
+                        PDFRenderer renderer = new PDFRenderer(document);
+                        img = renderer.renderImageWithDPI(0, 150);
+                    }
                 }
-                break;
-            default:
-                System.out.println("Unsupported file format: " + extension);
-                break;
+                case "dcm" -> {
+                    try (ImageInputStream iis = ImageIO.createImageInputStream(file.getInputStream())) {
+                        DicomImageReader reader = new DicomImageReader(new DicomImageReaderSpi());
+                        reader.setInput(iis);
+                        BufferedImage dcmImage = reader.read(0);
+                        if (dcmImage != null) img = Thumbnails.of(dcmImage).size(200, 200).asBufferedImage();
+                    }
+                }
+                default -> System.out.println("Unsupported file format: " + extension);
+            }
+        } catch (Exception e) {
+            throw new IOException("Error processing file", e);
         }
 
-        String baseName = originalFilename.replaceAll("\\.[^.]*$", "");
         String publicId = null;
-
         if (img != null) {
             ByteArrayOutputStream os = new ByteArrayOutputStream();
             ImageIO.write(img, "png", os);
-
             Map uploadResult = cloudinary.uploader().upload(os.toByteArray(),
-                    ObjectUtils.asMap(
-                            "public_id", "thumbnails/" + baseName + "_" + java.util.UUID.randomUUID(),
+                    ObjectUtils.asMap("public_id", "thumbnails/" + originalFilename + "_" + java.util.UUID.randomUUID(),
                             "resource_type", "image",
-                            "type", "private"
-                    ));
+                            "type", "private"));
             publicId = (String) uploadResult.get("public_id");
         }
 
-        String uploadDir = "uploads/documents/" + patient.getPesel() + "/";
-        File dir = new File(uploadDir);
-        if (!dir.exists()) {
-            dir.mkdirs();
-        }
+        Path uploadDir = Paths.get("uploads/documents", patient.getPesel());
+        if (!Files.exists(uploadDir)) Files.createDirectories(uploadDir);
 
-        String uniqueFilename = System.currentTimeMillis() + "_" + originalFilename;
-        Path filePath = Paths.get(uploadDir, uniqueFilename);
-
-        // TODO: implement file encryption
-        Files.write(filePath, file.getBytes());
+        Path filePath = uploadDir.resolve(System.currentTimeMillis() + "_" + originalFilename);
+        Files.write(filePath, encryptBytes(file.getBytes()));
 
         Document documentEntity = new Document();
         documentEntity.setPatient(patient.getPatientProfile());
@@ -115,33 +108,57 @@ public class DocumentService {
         documentEntity.setFilePath(filePath.toString());
         documentEntity.setDateTime(LocalDateTime.now());
         documentEntity.setThumbnailPublicId(publicId);
-
         documentRepository.save(documentEntity);
     }
 
-    public PageResponse<DocumentTNDto> generateDtos(PageResponse<Document> documents){
+    public String getFileBase64(Document document) throws IOException {
+        try {
+            byte[] encrypted = Files.readAllBytes(Paths.get(document.getFilePath()));
+            return Base64.getEncoder().encodeToString(decryptBytes(encrypted));
+        } catch (Exception e) {
+            throw new IOException("Failed to decrypt file", e);
+        }
+    }
+
+    public PageResponse<DocumentTNDto> generateDtos(PageResponse<Document> documents) {
         List<DocumentTNDto> dtos = new ArrayList<>();
-        for (Document doc : documents.getItems()){
+        for (Document doc : documents.getItems()) {
             String signedUrl = cloudinary.url()
                     .resourceType("image")
                     .type("private")
                     .signed(true)
                     .generate(doc.getThumbnailPublicId());
-            DocumentTNDto dto = doc.toDto(signedUrl);
-            dtos.add(dto);
-        }
-
-        PageResponse<DocumentTNDto> dtoPage = new PageResponse<>();
+            dtos.add(doc.toDto(signedUrl));
+        } PageResponse<DocumentTNDto> dtoPage = new PageResponse<>();
         dtoPage.setItems(dtos);
         dtoPage.setSize(documents.getSize());
         dtoPage.setCurrent(documents.getCurrent());
         dtoPage.setTotalElements(documents.getTotalElements());
         dtoPage.setTotalPages(documents.getTotalPages());
-
         return dtoPage;
     }
-
-    public PageResponse<Document> documentsByPatient(User patient, DocumentPageRequest pageDto){
-        return searchService.documentPaginationSearch(pageDto,patient);
+    public PageResponse<Document> documentsByPatient(User patient, DocumentPageRequest pageDto) {
+        return searchService.documentPaginationSearch(pageDto, patient);
     }
+
+    private byte[] encryptBytes(byte[] data) throws Exception {
+        Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+        cipher.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(getSecretKeyBytes(), "AES"));
+        return cipher.doFinal(data);
+    }
+
+    private byte[] decryptBytes(byte[] data) throws Exception {
+        Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+        cipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(getSecretKeyBytes(), "AES"));
+        return cipher.doFinal(data);
+    }
+
+    private byte[] getSecretKeyBytes() {
+        byte[] key = new byte[16];
+        byte[] secretBytes = secret.getBytes();
+        System.arraycopy(secretBytes, 0, key, 0, Math.min(secretBytes.length, 16));
+        return key;
+    }
+
+
 }
