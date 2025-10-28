@@ -114,17 +114,19 @@ public class DoctorController {
         return ResponseEntity.ok("Doctor profile updated");
     }
 
-    @PostMapping("/upload")
-    public ResponseEntity<?> uploadFiles(@RequestParam("files") MultipartFile[] files) {
+    @PostMapping("/patient/{id}/upload")
+    public ResponseEntity<?> uploadFiles(@PathVariable Long id , @RequestParam("files") MultipartFile[] files) {
 
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        User patient = userRepository.findByEmail(email)
+        User patient = userRepository.findById(id)
                 .orElseThrow(() -> new UsernameNotFoundException("Patient not found"));
+        User doctor = userRepository.findByEmail(email)
+                        .orElseThrow(() -> new UsernameNotFoundException("Patient not found"));
 
         for (MultipartFile file : files) {
             try {
-                documentService.saveFile(file, patient, patient);
+                documentService.saveFile(file, patient, doctor);
             } catch (Exception e) {
                 e.printStackTrace();
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

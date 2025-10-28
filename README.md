@@ -53,7 +53,7 @@ shutdown the container
 
 3. /role (GET)
 #### Calling this endpoint is only possible with Auth Bearer Token with JWT as a cookie or header
-    - Purpose: Currently logged user role
+   - Purpose: Currently logged user role
 
 ### AdminController /api/admin
 #### Calling this controller is only possible with Auth Bearer Token with JWT as a cookie or header with an Admin Role
@@ -196,6 +196,164 @@ shutdown the container
 7. /upload (POST)
     - Purpose: Uploading files[] to users profile
       @RequestParam("files") MultipartFile[] files
+    - Response: "Files processed" or Exception
+
+### DoctorController /api/doctor
+#### Calling this controller is only possible with Auth Bearer Token with JWT as a cookie or header with an Admin Role or Doctor Role
+1. /register-patient
+    - Purpose: Signing up a new user with Doctor Profile
+        ```json
+           {
+             "name" : 
+             "lastName" : 
+             "email" : 
+             "pesel" : 
+             "role" : 
+             "dateOfBirth" :
+             "gender" : 
+             "address" : 
+             "phoneNumber" : 
+             "allergies" : 
+             "chronicDiseases" : 
+             "medications" : 
+             "insuranceNumber" : 
+           }
+        ```
+2. /update-doctor
+   - Purpose: Doctor can update their own information
+     ```json
+           {
+             "name" : 
+             "lastName" : 
+             "specialization" : 
+             "department" : 
+             "position" : 
+             "professionalLicenseNumber" : 
+           }
+     ```
+3. /update-patient
+    - Purpose: Doctor can update their own information
+      ```json
+            {
+              "patientId" : 
+              "name" : 
+              "lastName" : 
+              "pesel" :
+              "dateOfBirth" : 
+              "gender" : 
+              "address" : 
+              "phoneNumber" : 
+              "bloodType" : 
+              "allergies" : 
+              "chronicDiseases" : 
+              "medications" : 
+              "insuranceNumber" : 
+            }
+      ```
+
+4.  /patients (POST)
+    - Purpose: Paginated patients with params
+        ```json
+        {
+          "page" : 
+          "search" :
+          "dateOfBirth" : 
+          "gender" :
+          "address" : 
+          "phoneNumber" :
+          "bloodType" : 
+          "allergies" :
+          "chronicDiseases" : 
+          "medications" :
+          "insuranceNumber" :  
+        }
+        ```
+    - Response: Page of patients profiles 
+      ```json
+        {
+          "items" : [
+                      {
+                        "patientId" : 
+                        "name" : 
+                        "lastName" : 
+                        "pesel" : 
+                        "dateOfBirth" :
+                        "gender" :                   
+                        "address" :                  
+                        "phoneNumber" :                  
+                        "bloodType" :                  
+                        "allergies" :                  
+                        "chronicDiseases" :                  
+                        "medications" :                  
+                        "insuranceNumber" :                  
+                      },{...},{...}    
+                    ],
+          "size" : 
+          "current" :
+          "totalElements" : 
+          "totalPages" :  
+        }
+        ```
+
+5. /patient/document/{id} (GET)
+    - Purpose: Doctor can access Patients document by documentId
+        
+    - Response: Document in Base64 format (String)
+
+6. /patient/documents/{id} (POST)
+    - Purpose: Doctor can access Patients document by documentId
+        ```json
+        {
+          "page" : 
+          "year" : 
+          "search" : 
+        }
+        ```
+    - Response: Page of document records
+        ```json
+        {
+          "items" : [
+                      {
+                        "id" : 
+                        "patient" : 
+                        "sender" : 
+                        "dateTime" : 
+                        "tags" : [String, String, ...] 
+                        "thumbnailSignedURL" :                  
+                      },{...},{...}    
+                    ],
+          "size" : 
+          "current" :
+          "totalElements" : 
+          "totalPages" :  
+        }
+        ```
+
+7. /patient/{id} (GET)
+    - Purpose: Get patient info by id
+    - Response :
+        ```json
+        {
+          "patientId" : 
+          "name" : 
+          "lastName" : 
+          "pesel" :
+          "dateOfBirth" : 
+          "gender" : 
+          "address" : 
+          "phoneNumber" : 
+          "bloodType" : 
+          "allergies" : 
+          "chronicDiseases" : 
+          "medications" : 
+          "insuranceNumber" : 
+        }
+        ```
+      
+8. /patient/{id}/upload (POST)
+    - Purpose: Uploading files[] to patients profile
+      @RequestParam("files") MultipartFile[] files
+      @PathVariable("id") Long id
     - Response: "Files processed" or Exception
 
 ### PublicController /api/public
