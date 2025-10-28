@@ -19,6 +19,7 @@ import org.passay.EnglishCharacterData;
 import org.passay.LengthRule;
 import org.passay.PasswordGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -97,6 +98,7 @@ public class UserController {
         return ResponseEntity.ok("Files processed");
     }
 
+
     @PostMapping("/gallery")
     public ResponseEntity<PageResponse<DocumentTNDto>> showGallery(@RequestBody DocumentPageRequest pageDto){
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -121,6 +123,7 @@ public class UserController {
         userRepository.save(user);
         return ResponseEntity.ok("Password Changed");
     }
+
 
     @GetMapping("/document/{id}")
     public ResponseEntity<String> getDocument(@PathVariable Long id){

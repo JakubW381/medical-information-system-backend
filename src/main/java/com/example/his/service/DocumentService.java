@@ -16,6 +16,7 @@ import org.dcm4che3.imageio.plugins.dcm.DicomImageReader;
 import org.dcm4che3.imageio.plugins.dcm.DicomImageReaderSpi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -72,11 +73,13 @@ public class DocumentService {
                     }
                 }
                 case "dcm" -> {
+                    DicomImageReader reader = new DicomImageReader(new DicomImageReaderSpi());
                     try (ImageInputStream iis = ImageIO.createImageInputStream(file.getInputStream())) {
-                        DicomImageReader reader = new DicomImageReader(new DicomImageReaderSpi());
                         reader.setInput(iis);
                         BufferedImage dcmImage = reader.read(0);
                         if (dcmImage != null) img = Thumbnails.of(dcmImage).size(200, 200).asBufferedImage();
+                    }finally {
+                        reader.dispose();
                     }
                 }
                 default -> System.out.println("Unsupported file format: " + extension);
@@ -137,6 +140,8 @@ public class DocumentService {
         dtoPage.setTotalPages(documents.getTotalPages());
         return dtoPage;
     }
+
+    @Cacheable("documentPageCache")
     public PageResponse<Document> documentsByPatient(User patient, DocumentPageRequest pageDto) {
         return searchService.documentPaginationSearch(pageDto, patient);
     }

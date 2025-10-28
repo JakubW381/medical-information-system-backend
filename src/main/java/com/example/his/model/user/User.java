@@ -2,9 +2,9 @@ package com.example.his.model.user;
 
 
 import com.example.his.dto.SafeUserDto;
-import com.example.his.model.Document;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -16,6 +16,7 @@ import java.util.List;
 @Entity
 @Data
 @Table(name = "users")
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class User implements UserDetails {
 
     @Id
@@ -70,5 +71,18 @@ public class User implements UserDetails {
             safeUserDto.setSpecialization(doctorProfile.getSpecialization());
         }
         return safeUserDto;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof User)) return false;
+        User user = (User) o;
+        return id != null && id.equals(user.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode(); // lub Objects.hash(id)
     }
 }

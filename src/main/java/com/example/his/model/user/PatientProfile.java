@@ -3,11 +3,13 @@ package com.example.his.model.user;
 import com.example.his.dto.PatientProfileDto;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.time.LocalDate;
 
 @Data
 @Entity
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class PatientProfile {
 
     @Id
@@ -47,6 +49,19 @@ public class PatientProfile {
                 medications,
                 insuranceNumber
         );
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof PatientProfile)) return false;
+        PatientProfile that = (PatientProfile) o;
+        return id != null && id.equals(that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
     }
 }
 

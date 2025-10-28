@@ -10,6 +10,7 @@ import com.example.his.model.user.User;
 import com.example.his.repository.UserRepository;
 import com.example.his.service.search.SearchService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -41,6 +42,7 @@ public class UserService {
     }
 
 
+    @Cacheable("patientDtoCache")
     public PageResponse<PatientProfileDto> generateDtos(PageResponse<User> users){
         List<PatientProfileDto> dtos = new ArrayList<>();
 
@@ -54,6 +56,7 @@ public class UserService {
         return dtoPage;
     }
 
+    @Cacheable("patientPageCache")
     public PageResponse<User> getPatients(PatientsPageRequest pageDto){
         return searchService.userPaginationSearch(pageDto);
     }
