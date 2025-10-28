@@ -78,7 +78,6 @@ shutdown the container
        {
          "name" : 
          "lastName" : 
-   
          "specialization" : 
          "department" : 
          "position" : 
@@ -114,7 +113,7 @@ shutdown the container
           "name" : 
           "lastName" : 
           "pesel" : 
-          "role", : 
+          "role" : 
           "dateOfBirth" : 
           "gender" : 
           "address" : 
