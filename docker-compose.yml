@@ -38,6 +38,7 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       DB_USERNAME: ${DB_USERNAME}
       SECRET_SHA: ${SECRET_SHA}
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY}
       DB_HOST: postgres
       DB_PORT: 5432
 

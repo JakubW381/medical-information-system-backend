@@ -9,9 +9,11 @@ import com.example.his.model.Document;
 import com.example.his.model.user.User;
 import com.example.his.repository.DocumentRepository;
 import com.example.his.service.search.SearchService;
+import com.example.his.service.tags.TaggingService;
 import net.coobird.thumbnailator.Thumbnails;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.PDFRenderer;
+import org.dcm4che3.data.Attributes;
 import org.dcm4che3.imageio.plugins.dcm.DicomImageReader;
 import org.dcm4che3.imageio.plugins.dcm.DicomImageReaderSpi;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +49,9 @@ public class DocumentService {
     @Autowired
     private SearchService searchService;
 
+    @Autowired
+    private TaggingService taggingService;
+
     @Value("${SECRET_SHA}")
     private String secret;
 
@@ -60,16 +65,23 @@ public class DocumentService {
         String originalFilename = file.getOriginalFilename();
         if (originalFilename == null) throw new IllegalArgumentException("File must have a name");
 
+        List<String> tags = new ArrayList<>();
+
         String extension = originalFilename.substring(originalFilename.lastIndexOf(".") + 1).toLowerCase();
         BufferedImage img = null;
 
         try {
             switch (extension) {
-                case "jpg", "jpeg", "png" -> img = Thumbnails.of(file.getInputStream()).size(200, 200).asBufferedImage();
+                case "jpg", "jpeg", "png" -> {
+                    img = Thumbnails.of(file.getInputStream()).size(200, 200).asBufferedImage();
+                    tags = taggingService.tagImage(file);
+                }
                 case "pdf" -> {
                     try (PDDocument document = PDDocument.load(file.getInputStream())) {
                         PDFRenderer renderer = new PDFRenderer(document);
                         img = renderer.renderImageWithDPI(0, 150);
+
+                        tags = taggingService.tagPdf(file);
                     }
                 }
                 case "dcm" -> {
@@ -78,6 +90,11 @@ public class DocumentService {
                         reader.setInput(iis);
                         BufferedImage dcmImage = reader.read(0);
                         if (dcmImage != null) img = Thumbnails.of(dcmImage).size(200, 200).asBufferedImage();
+
+                        String metadata = reader.getStreamMetadata().getAttributes().toString();
+
+                        tags = taggingService.tagDicom(metadata);
+
                     }finally {
                         reader.dispose();
                     }
@@ -111,6 +128,7 @@ public class DocumentService {
         documentEntity.setFilePath(filePath.toString());
         documentEntity.setDateTime(LocalDateTime.now());
         documentEntity.setThumbnailPublicId(publicId);
+        documentEntity.setTags(tags);
         documentRepository.save(documentEntity);
     }
 

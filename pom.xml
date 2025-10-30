@@ -135,6 +135,12 @@
             <artifactId>caffeine</artifactId>
         </dependency>
 
+        <!--Gemini-->
+        <dependency>
+            <groupId>com.google.genai</groupId>
+            <artifactId>google-genai</artifactId>
+            <version>1.25.0</version>
+        </dependency>
 
         <!-- Test -->
         <dependency>
