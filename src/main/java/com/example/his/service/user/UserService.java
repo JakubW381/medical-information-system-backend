@@ -2,10 +2,10 @@ package com.example.his.service.user;
 
 import com.example.his.dto.*;
 import com.example.his.dto.request.PatientsPageRequest;
+import com.example.his.dto.request.UserPageRequest;
 import com.example.his.dto.response.PageResponse;
 import com.example.his.model.user.Gender;
 import com.example.his.model.user.PatientProfile;
-import com.example.his.model.user.Role;
 import com.example.his.model.user.User;
 import com.example.his.repository.UserRepository;
 import com.example.his.service.search.SearchService;
@@ -58,6 +58,11 @@ public class UserService {
 
     @Cacheable("patientPageCache")
     public PageResponse<User> getPatients(PatientsPageRequest pageDto){
+        return searchService.patientPaginationSearch(pageDto);
+    }
+
+    @Cacheable("userPageCache")
+    public PageResponse<User> getUsers(UserPageRequest pageDto){
         return searchService.userPaginationSearch(pageDto);
     }
 }

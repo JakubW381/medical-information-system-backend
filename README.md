@@ -104,6 +104,64 @@ shutdown the container
          "insuranceNumber" : 
        }
        ```
+4. /logs (POST)
+    - Purpose: Attaching a patient profile to existing user
+        ```json
+        {
+          "id" : 
+          "search" : 
+          "page" : 
+          "logType" : 
+          "authorId" : 
+          "targetId" : 
+          "from" : 
+          "to" : 
+        }
+        ```
+      - Response: 
+      ```json
+        {
+          "items" : [
+                      {
+                        "id" : 
+                        "author" : 
+                        "logType" : 
+                        "target" : 
+                        "description" :                  
+                        "timestamp" :                  
+                      },{...},{...}    
+                    ],
+          "size" : 
+          "current" :
+          "totalElements" : 
+          "totalPages" :  
+        }
+        ```
+5. /users (POST)
+    - Purpose: Attaching a patient profile to existing user
+        ```json
+        {
+          "id" : 
+          "name" : 
+          "lastName" : 
+          "email" : 
+          "pesel" : 
+          "role" : 
+          "createdAfter" :
+        }
+        ```
+        - Response:
+      ```json
+        {
+          "items" : [
+                      {User::class}   
+                    ],
+          "size" : 
+          "current" :
+          "totalElements" : 
+          "totalPages" :  
+        }
+        ```
 ### UserController (Patient) /api/user
 #### Calling this controller is only possible with Auth Bearer Token with JWT as a cookie or header 
 1. /update-patient (POST)

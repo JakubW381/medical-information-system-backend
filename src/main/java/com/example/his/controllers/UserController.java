@@ -7,12 +7,15 @@ import com.example.his.dto.response.PageResponse;
 import com.example.his.dto.PatientProfileDto;
 import com.example.his.model.Document;
 import com.example.his.model.Token;
+import com.example.his.model.logs.Log;
+import com.example.his.model.logs.LogType;
 import com.example.his.model.user.User;
 import com.example.his.repository.DocumentRepository;
 import com.example.his.repository.TokenRepository;
 import com.example.his.repository.UserRepository;
 import com.example.his.service.DocumentService;
 import com.example.his.service.EmailService;
+import com.example.his.service.LogService;
 import com.example.his.service.user.UserService;
 import org.passay.CharacterRule;
 import org.passay.EnglishCharacterData;
@@ -57,6 +60,9 @@ public class UserController {
 
     @Autowired
     private TokenRepository tokenRepository;
+
+    @Autowired
+    private LogService logService;
 
 
     @PostMapping("/update-patient")
@@ -176,6 +182,13 @@ public class UserController {
 
         String domain = "localhost:8181";
         String url = domain + "/api/public/document/" + token.getToken();
+
+        Log log = new Log();
+
+        log.setAuthor(user);
+        log.setLogType(LogType.USER_REGISTERED);
+        log.setDescription("Patient Registered");
+        logService.saveLog(log);
 
         return ResponseEntity.ok(url);
     }

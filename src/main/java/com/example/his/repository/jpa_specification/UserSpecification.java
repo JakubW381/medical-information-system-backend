@@ -1,82 +1,49 @@
 package com.example.his.repository.jpa_specification;
 
-import com.example.his.dto.request.PatientsPageRequest;
-import com.example.his.model.user.Gender;
+import com.example.his.dto.request.UserPageRequest;
 import com.example.his.model.user.User;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class UserSpecification {
 
-    public static Specification<User> filterUser(PatientsPageRequest pageDto) {
-        return (root, query, criteriaBuilder) -> {
-            Predicate p = criteriaBuilder.conjunction();
+    public static Specification<User> filterUsers(UserPageRequest request) {
+        return (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
 
-            if (pageDto.getSearch() != null && !pageDto.getSearch().isBlank()) {
-                String pattern = "%" + pageDto.getSearch().toLowerCase() + "%";
-                p = criteriaBuilder.and(p, criteriaBuilder.or(
-                        criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), pattern),
-                        criteriaBuilder.like(criteriaBuilder.lower(root.get("lastName")), pattern)
-                ));
+            if (request.getId() != null) {
+                predicates.add(cb.equal(root.get("id"), request.getId()));
             }
 
-            if (pageDto.getAllergies() != null && !pageDto.getAllergies().isBlank()) {
-                String pattern = "%" + pageDto.getAllergies().toLowerCase() + "%";
-                p = criteriaBuilder.and(p,
-                        criteriaBuilder.like(criteriaBuilder.lower(root.get("allergies")), pattern));
+            if (request.getName() != null && !request.getName().isBlank()) {
+                predicates.add(cb.like(cb.lower(root.get("name")), "%" + request.getName().toLowerCase() + "%"));
             }
 
-            if (pageDto.getAddress() != null && !pageDto.getAddress().isBlank()) {
-                String pattern = "%" + pageDto.getAddress().toLowerCase() + "%";
-                p = criteriaBuilder.and(p,
-                        criteriaBuilder.like(criteriaBuilder.lower(root.get("address")), pattern));
+            if (request.getLastName() != null && !request.getLastName().isBlank()) {
+                predicates.add(cb.like(cb.lower(root.get("lastName")), "%" + request.getLastName().toLowerCase() + "%"));
             }
 
-            if (pageDto.getGender() != null) {
-                try {
-                    Gender genderEnum = Gender.valueOf(pageDto.getGender().toString().toUpperCase());
-                    p = criteriaBuilder.and(p, criteriaBuilder.equal(root.get("gender"), genderEnum));
-                } catch (IllegalArgumentException e) {
-                    System.out.println("Incorrect gender");
-                }
+            if (request.getEmail() != null && !request.getEmail().isBlank()) {
+                predicates.add(cb.like(cb.lower(root.get("email")), "%" + request.getEmail().toLowerCase() + "%"));
             }
 
-            if (pageDto.getBloodType() != null && !pageDto.getBloodType().isBlank()) {
-                String pattern = "%" + pageDto.getBloodType().toLowerCase() + "%";
-                p = criteriaBuilder.and(p,
-                        criteriaBuilder.like(criteriaBuilder.lower(root.get("bloodType")), pattern));
+            if (request.getPesel() != null && !request.getPesel().isBlank()) {
+                predicates.add(cb.like(root.get("pesel"), "%" + request.getPesel() + "%"));
             }
 
-            if (pageDto.getChronicDiseases() != null && !pageDto.getChronicDiseases().isBlank()) {
-                String pattern = "%" + pageDto.getChronicDiseases().toLowerCase() + "%";
-                p = criteriaBuilder.and(p,
-                        criteriaBuilder.like(criteriaBuilder.lower(root.get("chronicDiseases")), pattern));
+            if (request.getRole() != null) {
+                predicates.add(cb.equal(root.get("role"), request.getRole()));
             }
 
-            if (pageDto.getMedications() != null && !pageDto.getMedications().isBlank()) {
-                String pattern = "%" + pageDto.getMedications().toLowerCase() + "%";
-                p = criteriaBuilder.and(p,
-                        criteriaBuilder.like(criteriaBuilder.lower(root.get("medications")), pattern));
+            if (request.getCreatedAfter() != null) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("createdAt"), request.getCreatedAfter()));
             }
 
-            if (pageDto.getInsuranceNumber() != null && !pageDto.getInsuranceNumber().isBlank()) {
-                String pattern = "%" + pageDto.getInsuranceNumber().toLowerCase() + "%";
-                p = criteriaBuilder.and(p,
-                        criteriaBuilder.like(criteriaBuilder.lower(root.get("insuranceNumber")), pattern));
-            }
-
-            if (pageDto.getDateOfBirth() != null) {
-                p = criteriaBuilder.and(p,
-                        criteriaBuilder.equal(root.get("patientProfile").get("dateOfBirth"), pageDto.getDateOfBirth()));
-            }
-
-            if (pageDto.getPhoneNumber() != null && !pageDto.getPhoneNumber().isBlank()) {
-                String pattern = "%" + pageDto.getPhoneNumber().toLowerCase() + "%";
-                p = criteriaBuilder.and(p,
-                        criteriaBuilder.like(criteriaBuilder.lower(root.get("phoneNumber")), pattern));
-            }
-
-            return p;
+            query.distinct(true);
+            return cb.and(predicates.toArray(new Predicate[0]));
         };
     }
 }
