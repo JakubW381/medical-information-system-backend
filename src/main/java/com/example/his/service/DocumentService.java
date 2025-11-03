@@ -6,6 +6,8 @@ import com.example.his.dto.DocumentTNDto;
 import com.example.his.dto.request.DocumentPageRequest;
 import com.example.his.dto.response.PageResponse;
 import com.example.his.model.Document;
+import com.example.his.model.logs.Log;
+import com.example.his.model.logs.LogType;
 import com.example.his.model.user.User;
 import com.example.his.repository.DocumentRepository;
 import com.example.his.service.search.SearchService;
@@ -52,6 +54,9 @@ public class DocumentService {
     @Autowired
     private TaggingService taggingService;
 
+    @Autowired
+    private LogService logService;
+
     @Value("${SECRET_SHA}")
     private String secret;
 
@@ -96,6 +101,14 @@ public class DocumentService {
                         tags = taggingService.tagDicom(metadata);
 
                     }finally {
+                        Log log = new Log();
+
+                        log.setAuthor(sender);
+                        log.setTarget(patient);
+                        log.setLogType(LogType.DOCUMENT_SAVE);
+                        log.setDescription("Document Saved");
+                        logService.saveLog(log);
+
                         reader.dispose();
                     }
                 }

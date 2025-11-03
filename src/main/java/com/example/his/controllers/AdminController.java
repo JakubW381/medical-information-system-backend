@@ -1,16 +1,23 @@
 package com.example.his.controllers;
 
 import com.example.his.dto.DoctorProfileDto;
-import com.example.his.dto.PatientProfileDto;
 import com.example.his.dto.request.DoctorRegisterRequest;
+import com.example.his.dto.request.LogPageRequest;
 import com.example.his.dto.request.PatientRegisterRequest;
+import com.example.his.dto.request.UserPageRequest;
+import com.example.his.dto.response.LogRecordDto;
+import com.example.his.dto.response.PageResponse;
+import com.example.his.model.logs.Log;
+import com.example.his.model.logs.LogType;
 import com.example.his.model.user.DoctorProfile;
 import com.example.his.model.user.PatientProfile;
 import com.example.his.model.user.Role;
 import com.example.his.model.user.User;
 import com.example.his.repository.UserRepository;
+import com.example.his.service.LogService;
 import com.example.his.service.user.AuthService;
 import com.example.his.service.user.RegisterResponse;
+import com.example.his.service.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,7 +34,13 @@ public class AdminController {
     private UserRepository userRepository;
 
     @Autowired
+    private UserService userService;
+
+    @Autowired
     private AuthService authService;
+
+    @Autowired
+    private LogService logService;
 
     @GetMapping("/test")
     public ResponseEntity<String> test(){
@@ -59,6 +72,23 @@ public class AdminController {
         }
 
         if (response == RegisterResponse.SUCCESS){
+
+            String email = SecurityContextHolder.getContext().getAuthentication().getName();
+            Log log = new Log();
+
+            User author = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new UsernameNotFoundException("Patient not found"));
+
+            User target = userRepository.findByEmail(doctorRegisterRequest.getEmail())
+                    .orElseThrow(() -> new UsernameNotFoundException("unknown user repo error"));
+
+            log.setAuthor(author);
+            log.setTarget(target);
+            log.setDescription("Patient Registered");
+            log.setLogType(LogType.USER_REGISTERED);
+
+            logService.saveLog(log);
+
             return ResponseEntity
                     .status(HttpStatus.CREATED)
                     .body("Signed up successfully");
@@ -68,6 +98,7 @@ public class AdminController {
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body("Unexpected registration Error");
     }
+
     @PostMapping("/user-doctor")
     public ResponseEntity<?> setDoctorProfile(@RequestBody DoctorProfileDto dto) {
 
@@ -91,7 +122,6 @@ public class AdminController {
 
         return ResponseEntity.ok("Doctor profile saved successfully");
     }
-
 
     @PostMapping("/user-patient")
     public ResponseEntity<?> setPatientProfile(@RequestBody PatientRegisterRequest dto) {
@@ -120,4 +150,15 @@ public class AdminController {
         return ResponseEntity.ok("Patient profile saved successfully");
     }
 
+    @PostMapping("/logs")
+    public ResponseEntity<PageResponse<LogRecordDto>> getLogs(@RequestBody LogPageRequest logPageRequest){
+        PageResponse<LogRecordDto> response = logService.getLogPage(logPageRequest);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/users")
+    public ResponseEntity<PageResponse<User>> getUsers(@RequestBody UserPageRequest pageRequest){
+        PageResponse<User> response = userService.getUsers(pageRequest);
+        return ResponseEntity.ok(response);
+    }
 }

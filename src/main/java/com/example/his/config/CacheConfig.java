@@ -21,7 +21,13 @@ public class CacheConfig {
 
     @Bean
     public CacheManager cacheManager(Caffeine<Object, Object> caffeine) {
-        CaffeineCacheManager manager = new CaffeineCacheManager("patientDtoCache", "patientPageCache", "documentPageCache");
+        CaffeineCacheManager manager = new CaffeineCacheManager(
+                "patientDtoCache",
+                "patientPageCache",
+                "documentPageCache",
+                "logPageCache",
+                "userPageCache"
+        );
         manager.setCaffeine(caffeine);
         return manager;
     }

@@ -6,11 +6,14 @@ import com.example.his.dto.request.PatientRegisterRequest;
 import com.example.his.dto.request.PatientsPageRequest;
 import com.example.his.dto.response.PageResponse;
 import com.example.his.model.Document;
+import com.example.his.model.logs.Log;
+import com.example.his.model.logs.LogType;
 import com.example.his.model.user.DoctorProfile;
 import com.example.his.model.user.User;
 import com.example.his.repository.DocumentRepository;
 import com.example.his.repository.UserRepository;
 import com.example.his.service.DocumentService;
+import com.example.his.service.LogService;
 import com.example.his.service.user.AuthService;
 import com.example.his.service.user.RegisterResponse;
 import com.example.his.service.user.UserService;
@@ -44,6 +47,9 @@ public class DoctorController {
 
     @Autowired
     private DocumentRepository documentRepository;
+
+    @Autowired
+    private LogService logService;
 
 
     @GetMapping("/patient/{id}")
@@ -154,6 +160,22 @@ public class DoctorController {
         }
 
         if (response == RegisterResponse.SUCCESS){
+
+            String email = SecurityContextHolder.getContext().getAuthentication().getName();
+            Log log = new Log();
+
+            User author = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new UsernameNotFoundException("Patient not found"));
+
+            User target = userRepository.findByEmail(patientRegisterRequest.getEmail())
+                    .orElseThrow(() -> new UsernameNotFoundException("unknown user repo error"));
+
+            log.setAuthor(author);
+            log.setTarget(target);
+            log.setLogType(LogType.USER_REGISTERED);
+            log.setDescription("Patient Registered");
+            logService.saveLog(log);
+
             return ResponseEntity
                     .status(HttpStatus.CREATED)
                     .body("Signed up successfully");
