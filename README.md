@@ -25,7 +25,7 @@ build the container
 
 shutdown and clear containers volumes
 
-    docker-compose up
+    docker-compose down -v
 
 start the container
 
