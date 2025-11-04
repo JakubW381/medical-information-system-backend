@@ -4,6 +4,7 @@ import com.example.his.config.util.JWTService;
 import com.example.his.dto.request.AuthRequestRequest;
 import com.example.his.dto.RegisterRequestDto;
 import com.example.his.dto.request.DoctorRegisterRequest;
+import com.example.his.dto.request.LabRegisterRequest;
 import com.example.his.dto.request.PatientRegisterRequest;
 import com.example.his.model.user.*;
 import com.example.his.repository.UserRepository;
@@ -150,6 +151,29 @@ public class AuthService {
 
         userRepository.save(user);
         emailService.sendRegistrationPassword(registerRequestDto.getEmail(), generatedPassword);
+        return RegisterResponse.SUCCESS;
+    }
+
+    public RegisterResponse registerLab(LabRegisterRequest labRegisterRequest){
+        Optional<User> userOpt = userRepository.findByEmail(labRegisterRequest.getEmail());
+        if (userOpt.isPresent()){
+            return RegisterResponse.EMAIL_EXISTS;
+        }
+
+        User user = new User();
+
+        user.setEmail(labRegisterRequest.getEmail());
+        user.setName(labRegisterRequest.getName());
+
+        String generatedPassword = generateTempPassword();
+        user.setPassword(passwordEncoder.encode(generatedPassword));
+        user.setRole(Role.ROLE_LAB);
+
+        PatientProfile patientProfile = new PatientProfile();
+        patientProfile.setUser(user);
+
+        userRepository.save(user);
+        emailService.sendRegistrationPassword(labRegisterRequest.getEmail(), generatedPassword);
         return RegisterResponse.SUCCESS;
     }
 

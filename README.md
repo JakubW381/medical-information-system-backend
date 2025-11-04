@@ -420,5 +420,10 @@ shutdown the container
     - Response: shared file in base64 format
 
 
-### LabController
-# #TODO
+### LabController /api/lab
+
+1. /upload (POST)
+    - Purpose: Upload files for exact patient
+      @RequestParam("files") MultipartFile[] files
+      @RequestParam("pesel") String pesel
+   - Response: Upload Result

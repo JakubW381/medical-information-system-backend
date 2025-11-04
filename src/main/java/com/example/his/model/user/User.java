@@ -37,7 +37,6 @@ public class User implements UserDetails {
     private LocalDateTime createdAt = LocalDateTime.now();
     private LocalDateTime lastLogin;
 
-
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private PatientProfile patientProfile;
 

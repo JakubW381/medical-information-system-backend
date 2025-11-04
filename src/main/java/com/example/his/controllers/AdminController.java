@@ -1,10 +1,7 @@
 package com.example.his.controllers;
 
 import com.example.his.dto.DoctorProfileDto;
-import com.example.his.dto.request.DoctorRegisterRequest;
-import com.example.his.dto.request.LogPageRequest;
-import com.example.his.dto.request.PatientRegisterRequest;
-import com.example.his.dto.request.UserPageRequest;
+import com.example.his.dto.request.*;
 import com.example.his.dto.response.LogRecordDto;
 import com.example.his.dto.response.PageResponse;
 import com.example.his.model.logs.Log;
@@ -92,6 +89,45 @@ public class AdminController {
             return ResponseEntity
                     .status(HttpStatus.CREATED)
                     .body("Signed up successfully");
+        }
+
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Unexpected registration Error");
+    }
+
+    @PostMapping("/register-lab")
+    public ResponseEntity<?> registerLab(@RequestBody LabRegisterRequest labRegisterRequest){
+
+        RegisterResponse response = authService.registerLab(labRegisterRequest);
+
+        if (response == RegisterResponse.EMAIL_EXISTS) {
+            return ResponseEntity
+                    .status(HttpStatus.CONFLICT)
+                    .body("User with this email address already exists");
+        }
+
+        if (response == RegisterResponse.SUCCESS){
+
+            String email = SecurityContextHolder.getContext().getAuthentication().getName();
+            Log log = new Log();
+
+            User author = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new UsernameNotFoundException("Patient not found"));
+
+            User target = userRepository.findByEmail(labRegisterRequest.getEmail())
+                    .orElseThrow(() -> new UsernameNotFoundException("unknown user repo error"));
+
+            log.setAuthor(author);
+            log.setTarget(target);
+            log.setDescription("Laboratory Registered");
+            log.setLogType(LogType.USER_REGISTERED);
+
+            logService.saveLog(log);
+
+            return ResponseEntity
+                    .status(HttpStatus.CREATED)
+                    .body("Lab added successfully");
         }
 
         return ResponseEntity

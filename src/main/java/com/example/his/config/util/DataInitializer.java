@@ -31,6 +31,17 @@ public class DataInitializer {
                 System.out.println("Admin user created!");
             }
 
+            // --- LAB ---
+            if (userRepository.findByEmail("lab@example.com").isEmpty()) {
+                User lab = new User();
+                lab.setEmail("lab@example.com");
+                lab.setPassword(passwordEncoder.encode("lab123"));
+                lab.setRole(Role.ROLE_LAB);
+                lab.setName("Some Lab Example");
+                userRepository.save(lab);
+                System.out.println("Lab created!");
+            }
+
             // --- DOCTORS ---
             if (userRepository.findByEmail("dr.john@example.com").isEmpty()) {
                 User doctor1 = new User();

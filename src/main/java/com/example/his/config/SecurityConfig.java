@@ -54,8 +54,9 @@ public class SecurityConfig {
                             auth.requestMatchers("/api/auth/**").permitAll();
                             auth.requestMatchers("/api/public/**").permitAll();
                             auth.requestMatchers("/api/admin/**").hasRole("ADMIN");
+                            auth.requestMatchers("/api/lab/**").hasRole("LAB");
                             auth.requestMatchers("/api/doc/**").hasAnyRole("DOCTOR", "ADMIN");
-                            auth.requestMatchers("/api/user/**").authenticated();
+                            auth.requestMatchers("/api/user/**").hasAnyRole("USER","DOCTOR", "ADMIN");
                         }
                 )
                 .sessionManagement((session) -> session

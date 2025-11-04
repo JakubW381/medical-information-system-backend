@@ -51,7 +51,6 @@ public class DoctorController {
     @Autowired
     private LogService logService;
 
-
     @GetMapping("/patient/{id}")
     public ResponseEntity<?> getPatientProfile(@PathVariable Long id){
         User patient = userRepository.findById(id)
@@ -87,6 +86,7 @@ public class DoctorController {
     public ResponseEntity<PageResponse<PatientProfileDto>> getPatients(@RequestBody PatientsPageRequest pageDto){
 
         PageResponse<User> users = userService.getPatients(pageDto);
+
         PageResponse<PatientProfileDto> dtos = userService.generateDtos(users);
 
         return ResponseEntity.ok(dtos);
