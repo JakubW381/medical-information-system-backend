@@ -186,8 +186,8 @@ public class UserController {
         Log log = new Log();
 
         log.setAuthor(user);
-        log.setLogType(LogType.USER_REGISTERED);
-        log.setDescription("Patient Registered");
+        log.setLogType(LogType.DOCUMENT_SHARE);
+        log.setDescription("Document shared");
         logService.saveLog(log);
 
         return ResponseEntity.ok(url);
