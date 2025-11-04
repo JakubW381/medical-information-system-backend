@@ -409,6 +409,7 @@ shutdown the container
       
 8. /patient/{id}/upload (POST)
     - Purpose: Uploading files[] to patients profile
+      
       @RequestParam("files") MultipartFile[] files
       @PathVariable("id") Long id
     - Response: "Files processed" or Exception
@@ -424,6 +425,7 @@ shutdown the container
 
 1. /upload (POST)
     - Purpose: Upload files for exact patient
+
       @RequestParam("files") MultipartFile[] files
       @RequestParam("pesel") String pesel
    - Response: Upload Result
