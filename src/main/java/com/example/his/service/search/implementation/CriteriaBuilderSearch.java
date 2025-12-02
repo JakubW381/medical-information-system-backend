@@ -1,5 +1,6 @@
 package com.example.his.service.search.implementation;
 
+import com.example.his.dto.PatientProfileDto;
 import com.example.his.dto.request.DocumentPageRequest;
 import com.example.his.dto.request.LogPageRequest;
 import com.example.his.dto.request.UserPageRequest;
@@ -7,6 +8,7 @@ import com.example.his.dto.response.PageResponse;
 import com.example.his.dto.request.PatientsPageRequest;
 import com.example.his.model.Document;
 import com.example.his.model.logs.Log;
+import com.example.his.model.user.PatientProfile;
 import com.example.his.model.user.User;
 import com.example.his.repository.DocumentRepository;
 import com.example.his.repository.LogRepository;
@@ -36,23 +38,31 @@ public class CriteriaBuilderSearch implements SearchService {
     }
 
     @Override
-    public PageResponse<User> patientPaginationSearch(PatientsPageRequest pageDto) {
-        Specification<User> spec = PatientSpecification.filterUser(pageDto);
+    public PageResponse<PatientProfileDto> patientPaginationSearch(PatientsPageRequest pageDto) {
+        var spec = PatientSpecification.filterUser(pageDto);
 
         int page = pageDto.getPage() > 0 ? pageDto.getPage() - 1 : 0;
-        int size = 20;
+        int size = 6;
         Pageable pageable = PageRequest.of(page, size);
 
-        Page springPage = userRepository.findAll(spec, pageable);
+        Page<User> springPage = userRepository.findAll(spec, pageable);
 
-        PageResponse<User> dtoPage = new PageResponse<>();
-        dtoPage.setItems(springPage.getContent());
-        dtoPage.setSize(springPage.getSize());
-        dtoPage.setCurrent(springPage.getNumber());
-        dtoPage.setTotalElements(springPage.getTotalElements());
-        dtoPage.setTotalPages(springPage.getTotalPages());
+        // mapowanie User -> PatientProfileDto
+        Page<PatientProfileDto> dtoPage = springPage.map(user -> {
+            if (user.getPatientProfile() != null) {
+                return user.getPatientProfile().toDto();
+            }
+            return null;
+        });
 
-        return dtoPage;
+        PageResponse<PatientProfileDto> response = new PageResponse<>();
+        response.setItems(dtoPage.getContent());
+        response.setSize(dtoPage.getSize());
+        response.setCurrent(dtoPage.getNumber());
+        response.setTotalElements(dtoPage.getTotalElements());
+        response.setTotalPages(dtoPage.getTotalPages());
+
+        return response;
     }
 
     @Override
@@ -60,10 +70,10 @@ public class CriteriaBuilderSearch implements SearchService {
         Specification<User> spec = UserSpecification.filterUsers(pageDto);
 
         int page = pageDto.getPage() > 0 ? pageDto.getPage() - 1 : 0;
-        int size = 20;
+        int size = 12;
         Pageable pageable = PageRequest.of(page, size);
 
-        Page springPage = userRepository.findAll(spec, pageable);
+        Page<User> springPage = userRepository.findAll(spec, pageable);
 
         PageResponse<User> dtoPage = new PageResponse<>();
         dtoPage.setItems(springPage.getContent());
@@ -80,10 +90,10 @@ public class CriteriaBuilderSearch implements SearchService {
         Specification<Document> spec = DocumentSpecification.filterDocuments(pageDto, patient);
 
         int page = pageDto.getPage() > 0 ? pageDto.getPage() - 1 : 0;
-        int size = 20;
+        int size = 12;
         Pageable pageable = PageRequest.of(page, size);
 
-        Page springPage = documentRepository.findAll(spec, pageable);
+        Page<Document> springPage = documentRepository.findAll(spec, pageable);
 
         PageResponse<Document> dtoPage = new PageResponse<>();
         dtoPage.setItems(springPage.getContent());
@@ -103,7 +113,7 @@ public class CriteriaBuilderSearch implements SearchService {
         int size = 30;
         Pageable pageable = PageRequest.of(page, size);
 
-        Page springPage = logRepository.findAll(spec, pageable);
+        Page<Log> springPage = logRepository.findAll(spec, pageable);
 
         PageResponse<Log> dtoPage = new PageResponse<>();
         dtoPage.setItems(springPage.getContent());

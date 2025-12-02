@@ -255,7 +255,7 @@ shutdown the container
       @RequestParam("files") MultipartFile[] files
     - Response: "Files processed" or Exception
 
-### DoctorController /api/doctor
+### DoctorController /api/doc
 #### Calling this controller is only possible with Auth Bearer Token with JWT as a cookie or header with an Admin Role or Doctor Role
 1. /register-patient
     - Purpose: Signing up a new user with Doctor Profile

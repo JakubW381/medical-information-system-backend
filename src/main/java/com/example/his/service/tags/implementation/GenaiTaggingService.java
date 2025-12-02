@@ -24,7 +24,7 @@ public class GenaiTaggingService implements TaggingService {
     public List<String> tagPdf(MultipartFile file) {
         try {
             String prompt = """
-                    Analyze this medical document and return ONLY tags
+                    Analyze this medical document and return ONLY 10 tags
                     as a raw array (example):
                     ["radiology", "CT", "brain", "contrast"]
                     Do NOT include any text or explanation outside raw.

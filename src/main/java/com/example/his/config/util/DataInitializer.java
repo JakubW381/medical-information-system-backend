@@ -156,6 +156,30 @@ public class DataInitializer {
                 patient3.setPatientProfile(pp3);
                 userRepository.save(patient3);
             }
+            if (userRepository.findByEmail("patient4@example.com").isEmpty()) {
+                User patient4 = new User();
+                patient4.setEmail("patient4@example.com");
+                patient4.setPassword(passwordEncoder.encode("patient123"));
+                patient4.setRole(Role.ROLE_USER);
+                patient4.setName("Mark");
+                patient4.setLastName("Wazowski");
+                patient4.setPesel("12345678901");
+
+                PatientProfile pp4 = new PatientProfile();
+                pp4.setUser(patient4);
+                pp4.setDateOfBirth(LocalDate.of(1985, 3, 12));
+                pp4.setGender(com.example.his.model.user.Gender.MALE);
+                pp4.setAddress("124 Main St");
+                pp4.setPhoneNumber("553-123-456");
+                pp4.setBloodType("A-");
+                pp4.setAllergies("Peanuts");
+                pp4.setChronicDiseases("Hypertension");
+                pp4.setMedications("Lisinopril");
+                pp4.setInsuranceNumber("INS123456");
+
+                patient4.setPatientProfile(pp4);
+                userRepository.save(patient4);
+            }
 
 
             System.out.println("Sample doctors and patients created.");

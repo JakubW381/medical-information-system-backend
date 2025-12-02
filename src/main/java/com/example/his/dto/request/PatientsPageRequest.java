@@ -9,7 +9,7 @@ public class PatientsPageRequest {
     private int page;
     private String search;
 
-    private LocalDate dateOfBirth;
+    private String dateOfBirth;
     private String gender;
     private String address;
     private String phoneNumber;

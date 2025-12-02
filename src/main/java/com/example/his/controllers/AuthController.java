@@ -1,6 +1,7 @@
 package com.example.his.controllers;
 
 import com.example.his.config.util.JWTService;
+import com.example.his.dto.SafeUserDto;
 import com.example.his.dto.request.AuthRequestRequest;
 import com.example.his.dto.RegisterRequestDto;
 import com.example.his.model.user.Role;
@@ -16,9 +17,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -95,10 +101,26 @@ public class AuthController {
         if (authentication == null || !authentication.isAuthenticated()) {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
-
-        User user = (User) authentication.getPrincipal();
-        Role role = user.getRole();
-
+        Role role = Role.valueOf(authentication.getAuthorities()
+                .stream()
+                .findFirst()
+                .map(GrantedAuthority::getAuthority)
+                .orElse(null));
         return ResponseEntity.ok(role);
+    }
+
+    @GetMapping("/safe-user")
+    public ResponseEntity<SafeUserDto> getSafeUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
+        String email = authentication.getName();
+        SafeUserDto dto = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User Not Found")).toSafeUserDto();
+
+
+        return ResponseEntity.ok(dto);
     }
 }

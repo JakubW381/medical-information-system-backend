@@ -53,14 +53,14 @@ public class DoctorController {
 
     @GetMapping("/patient/{id}")
     public ResponseEntity<?> getPatientProfile(@PathVariable Long id){
-        User patient = userRepository.findById(id)
+        User patient = userRepository.findByPatientProfileId(id)
                 .orElseThrow(() -> new UsernameNotFoundException("Patient not found"));
         return ResponseEntity.ok(patient.getPatientProfile().toDto());
     }
 
     @PostMapping("/patient/documents/{id}")
     public ResponseEntity<PageResponse<DocumentTNDto>> getPatientDocuments(@PathVariable Long id, @RequestBody DocumentPageRequest pageDto){
-        User patient = userRepository.findById(id)
+        User patient = userRepository.findByPatientProfileId(id)
                 .orElseThrow(() -> new UsernameNotFoundException("Patient not found"));
 
         PageResponse<Document> documents = documentService.documentsByPatient(patient, pageDto);
@@ -84,11 +84,7 @@ public class DoctorController {
 
     @PostMapping("/patients")
     public ResponseEntity<PageResponse<PatientProfileDto>> getPatients(@RequestBody PatientsPageRequest pageDto){
-
-        PageResponse<User> users = userService.getPatients(pageDto);
-
-        PageResponse<PatientProfileDto> dtos = userService.generateDtos(users);
-
+        PageResponse<PatientProfileDto> dtos = userService.getPatients(pageDto);
         return ResponseEntity.ok(dtos);
     }
 

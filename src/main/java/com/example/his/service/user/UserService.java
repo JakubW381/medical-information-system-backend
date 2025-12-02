@@ -57,7 +57,7 @@ public class UserService {
     }
 
     @Cacheable("patientPageCache")
-    public PageResponse<User> getPatients(PatientsPageRequest pageDto){
+    public PageResponse<PatientProfileDto> getPatients(PatientsPageRequest pageDto){
         return searchService.patientPaginationSearch(pageDto);
     }
 
