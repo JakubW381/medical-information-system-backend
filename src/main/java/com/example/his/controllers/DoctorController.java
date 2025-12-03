@@ -121,10 +121,10 @@ public class DoctorController {
 
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        User patient = userRepository.findById(id)
+        User patient = userRepository.findByPatientProfileId(id)
                 .orElseThrow(() -> new UsernameNotFoundException("Patient not found"));
         User doctor = userRepository.findByEmail(email)
-                        .orElseThrow(() -> new UsernameNotFoundException("Patient not found"));
+                        .orElseThrow(() -> new UsernameNotFoundException("Doctor not found"));
 
         for (MultipartFile file : files) {
             try {
