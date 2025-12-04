@@ -28,6 +28,7 @@ public class UserService {
     public void updatePatientProfile(User patient, PatientProfileDto dto){
         PatientProfile profile = patient.getPatientProfile();
 
+        profile.getUser().setPesel(dto.getPesel());
         profile.setDateOfBirth(dto.getDateOfBirth());
         profile.setGender(Gender.valueOf(dto.getGender()));
         profile.setAddress(dto.getAddress());

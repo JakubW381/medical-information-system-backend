@@ -1,6 +1,7 @@
 package com.example.his.model.user;
 
 
+import com.example.his.dto.DoctorProfileDto;
 import com.example.his.dto.SafeUserDto;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -71,6 +72,18 @@ public class User implements UserDetails {
             safeUserDto.setSpecialization(doctorProfile.getSpecialization());
         }
         return safeUserDto;
+    }
+
+    public DoctorProfileDto toDoctorProfileDto(){
+        DoctorProfileDto doctorProfileDto = new DoctorProfileDto();
+        doctorProfileDto.setId(id);
+        doctorProfileDto.setName(name);
+        doctorProfileDto.setLastName(lastName);
+        doctorProfileDto.setPosition(doctorProfile.getPosition());
+        doctorProfileDto.setDepartment(doctorProfile.getDepartment());
+        doctorProfileDto.setSpecialization(doctorProfile.getSpecialization());
+        doctorProfileDto.setProfessionalLicenseNumber(doctorProfile.getProfessionalLicenseNumber());
+        return doctorProfileDto;
     }
 
     @Override

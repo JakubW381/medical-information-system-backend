@@ -12,5 +12,5 @@ public interface UserRepository extends JpaRepository<User, Long> , JpaSpecifica
     Optional<User> findByEmail(String email);
     Optional<User> findByPesel(String pesel);
     Optional<User> findByPatientProfileId(Long patientProfileId);
-
+    Optional<User> findByDoctorProfileId(Long doctorProfileId);
 }

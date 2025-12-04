@@ -82,107 +82,45 @@ public class DataInitializer {
             }
 
             // --- PATIENTS ---
-            if (userRepository.findByEmail("patient1@example.com").isEmpty()) {
-                User patient1 = new User();
-                patient1.setEmail("patient1@example.com");
-                patient1.setPassword(passwordEncoder.encode("patient123"));
-                patient1.setRole(Role.ROLE_USER);
-                patient1.setName("Alice");
-                patient1.setLastName("Brown");
-                patient1.setPesel("12345678901");
+            String[] firstNames = {"Alice", "Bob", "Charlie", "Mark", "Eve", "David", "Fiona", "George", "Hannah", "Ian",
+                    "Julia", "Kevin", "Laura", "Mike", "Nina", "Oscar", "Paula", "Quinn", "Rachel", "Steve"};
+            String[] lastNames = {"Brown", "Green", "White", "Wazowski", "Black", "Smith", "Johnson", "Taylor", "Lee", "Walker",
+                    "Hall", "Allen", "Young", "King", "Wright", "Scott", "Adams", "Baker", "Carter", "Davis"};
+            String[] emails = {"patient1@example.com", "patient2@example.com", "patient3@example.com", "patient4@example.com",
+                    "patient5@example.com", "patient6@example.com", "patient7@example.com", "patient8@example.com",
+                    "patient9@example.com", "patient10@example.com", "patient11@example.com", "patient12@example.com",
+                    "patient13@example.com", "patient14@example.com", "patient15@example.com", "patient16@example.com",
+                    "patient17@example.com", "patient18@example.com", "patient19@example.com", "patient20@example.com"};
+            String[] pesels = {"12345678901","23456789012","34567890123","45678901234","56789012345","67890123456","78901234567",
+                    "89012345678","90123456789","01234567890","11234567890","21234567890","31234567890","41234567890",
+                    "51234567890","61234567890","71234567890","81234567890","91234567890","02234567890"};
 
-                PatientProfile pp1 = new PatientProfile();
-                pp1.setUser(patient1);
-                pp1.setDateOfBirth(LocalDate.of(1985, 3, 12));
-                pp1.setGender(com.example.his.model.user.Gender.FEMALE);
-                pp1.setAddress("123 Main St");
-                pp1.setPhoneNumber("555-123-456");
-                pp1.setBloodType("A+");
-                pp1.setAllergies("Peanuts");
-                pp1.setChronicDiseases("Hypertension");
-                pp1.setMedications("Lisinopril");
-                pp1.setInsuranceNumber("INS123456");
+            for (int i = 0; i < 20; i++) {
+                if (userRepository.findByEmail(emails[i]).isEmpty()) {
+                    User patient = new User();
+                    patient.setEmail(emails[i]);
+                    patient.setPassword(passwordEncoder.encode("patient123"));
+                    patient.setRole(Role.ROLE_USER);
+                    patient.setName(firstNames[i]);
+                    patient.setLastName(lastNames[i]);
+                    patient.setPesel(pesels[i]);
 
-                patient1.setPatientProfile(pp1);
-                userRepository.save(patient1);
+                    PatientProfile pp = new PatientProfile();
+                    pp.setUser(patient);
+                    pp.setDateOfBirth(LocalDate.of(1970 + i % 30, (i % 12) + 1, (i % 28) + 1)); // przykładowe daty
+                    pp.setGender(i % 2 == 0 ? com.example.his.model.user.Gender.FEMALE : com.example.his.model.user.Gender.MALE);
+                    pp.setAddress((100 + i) + " Main St");
+                    pp.setPhoneNumber("555-" + (100 + i) + "-" + (100 + i));
+                    pp.setBloodType(i % 4 == 0 ? "A+" : i % 4 == 1 ? "B-" : i % 4 == 2 ? "O+" : "AB+");
+                    pp.setAllergies(i % 3 == 0 ? "Peanuts" : "");
+                    pp.setChronicDiseases(i % 2 == 0 ? "Hypertension" : "Diabetes");
+                    pp.setMedications(i % 2 == 0 ? "Lisinopril" : "Metformin");
+                    pp.setInsuranceNumber("INS" + (100000 + i));
+
+                    patient.setPatientProfile(pp);
+                    userRepository.save(patient);
+                }
             }
-
-            if (userRepository.findByEmail("patient2@example.com").isEmpty()) {
-                User patient2 = new User();
-                patient2.setEmail("patient2@example.com");
-                patient2.setPassword(passwordEncoder.encode("patient123"));
-                patient2.setRole(Role.ROLE_USER);
-                patient2.setName("Bob");
-                patient2.setLastName("Green");
-                patient2.setPesel("23456789012");
-
-                PatientProfile pp2 = new PatientProfile();
-                pp2.setUser(patient2);
-                pp2.setDateOfBirth(LocalDate.of(1990, 7, 22));
-                pp2.setGender(com.example.his.model.user.Gender.MALE);
-                pp2.setAddress("456 Oak St");
-                pp2.setPhoneNumber("555-234-567");
-                pp2.setBloodType("B-");
-                pp2.setAllergies("");
-                pp2.setChronicDiseases("Asthma");
-                pp2.setMedications("Albuterol");
-                pp2.setInsuranceNumber("INS234567");
-
-                patient2.setPatientProfile(pp2);
-                userRepository.save(patient2);
-            }
-
-            if (userRepository.findByEmail("patient3@example.com").isEmpty()) {
-                User patient3 = new User();
-                patient3.setEmail("patient3@example.com");
-                patient3.setPassword(passwordEncoder.encode("patient123"));
-                patient3.setRole(Role.ROLE_USER);
-                patient3.setName("Charlie");
-                patient3.setLastName("White");
-                patient3.setPesel("34567890123");
-
-                PatientProfile pp3 = new PatientProfile();
-                pp3.setUser(patient3);
-                pp3.setDateOfBirth(LocalDate.of(1975, 11, 5));
-                pp3.setGender(com.example.his.model.user.Gender.MALE);
-                pp3.setAddress("789 Pine St");
-                pp3.setPhoneNumber("555-345-678");
-                pp3.setBloodType("O+");
-                pp3.setAllergies("Penicillin");
-                pp3.setChronicDiseases("Diabetes");
-                pp3.setMedications("Metformin");
-                pp3.setInsuranceNumber("INS345678");
-
-                patient3.setPatientProfile(pp3);
-                userRepository.save(patient3);
-            }
-            if (userRepository.findByEmail("patient4@example.com").isEmpty()) {
-                User patient4 = new User();
-                patient4.setEmail("patient4@example.com");
-                patient4.setPassword(passwordEncoder.encode("patient123"));
-                patient4.setRole(Role.ROLE_USER);
-                patient4.setName("Mark");
-                patient4.setLastName("Wazowski");
-                patient4.setPesel("12345678901");
-
-                PatientProfile pp4 = new PatientProfile();
-                pp4.setUser(patient4);
-                pp4.setDateOfBirth(LocalDate.of(1985, 3, 12));
-                pp4.setGender(com.example.his.model.user.Gender.MALE);
-                pp4.setAddress("124 Main St");
-                pp4.setPhoneNumber("553-123-456");
-                pp4.setBloodType("A-");
-                pp4.setAllergies("Peanuts");
-                pp4.setChronicDiseases("Hypertension");
-                pp4.setMedications("Lisinopril");
-                pp4.setInsuranceNumber("INS123456");
-
-                patient4.setPatientProfile(pp4);
-                userRepository.save(patient4);
-            }
-
-
-            System.out.println("Sample doctors and patients created.");
         };
     }
 }

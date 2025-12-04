@@ -6,10 +6,7 @@ import com.example.his.dto.response.LogRecordDto;
 import com.example.his.dto.response.PageResponse;
 import com.example.his.model.logs.Log;
 import com.example.his.model.logs.LogType;
-import com.example.his.model.user.DoctorProfile;
-import com.example.his.model.user.PatientProfile;
-import com.example.his.model.user.Role;
-import com.example.his.model.user.User;
+import com.example.his.model.user.*;
 import com.example.his.repository.UserRepository;
 import com.example.his.service.LogService;
 import com.example.his.service.user.AuthService;
@@ -38,19 +35,6 @@ public class AdminController {
 
     @Autowired
     private LogService logService;
-
-    @GetMapping("/test")
-    public ResponseEntity<String> test(){
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal().equals("anonymousUser")) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("error: No Logged Admin");
-        }
-
-        return ResponseEntity.ok("Admin logged");
-    }
 
     @PostMapping("/register-doctor")
     public ResponseEntity<?> registerDoctor(@RequestBody DoctorRegisterRequest doctorRegisterRequest){
@@ -178,6 +162,8 @@ public class AdminController {
         profile.setChronicDiseases(dto.getChronicDiseases());
         profile.setMedications(dto.getMedications());
         profile.setInsuranceNumber(dto.getInsuranceNumber());
+        profile.setGender(Gender.valueOf(dto.getGender()));
+        user.setPesel(dto.getPesel());
 
         user.setPatientProfile(profile);
 

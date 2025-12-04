@@ -35,6 +35,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/user")
@@ -81,7 +82,12 @@ public class UserController {
 
         User patient = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Patient not found"));
-        return ResponseEntity.ok(patient.getPatientProfile().toDto());
+
+        if (patient.getPatientProfile() != null){
+            return ResponseEntity.ok(patient.getPatientProfile().toDto());
+        }else{
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No patientProfile found");
+        }
     }
 
     @PostMapping("/upload")
@@ -191,6 +197,13 @@ public class UserController {
         logService.saveLog(log);
 
         return ResponseEntity.ok(url);
+    }
+
+    @GetMapping("/doctor/{id}")
+    public ResponseEntity<?> getDoctorProfile(@PathVariable Long id){
+        User doctor = userRepository.findByDoctorProfileId(id)
+                .orElseThrow(() -> new UsernameNotFoundException("Doctor not found"));
+        return ResponseEntity.ok(doctor.getDoctorProfile());
     }
 
 }

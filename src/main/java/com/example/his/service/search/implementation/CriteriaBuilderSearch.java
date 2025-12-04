@@ -41,13 +41,12 @@ public class CriteriaBuilderSearch implements SearchService {
     public PageResponse<PatientProfileDto> patientPaginationSearch(PatientsPageRequest pageDto) {
         var spec = PatientSpecification.filterUser(pageDto);
 
-        int page = pageDto.getPage() > 0 ? pageDto.getPage() - 1 : 0;
-        int size = 6;
+        int page = pageDto.getPage();
+        int size = 8;
         Pageable pageable = PageRequest.of(page, size);
 
         Page<User> springPage = userRepository.findAll(spec, pageable);
 
-        // mapowanie User -> PatientProfileDto
         Page<PatientProfileDto> dtoPage = springPage.map(user -> {
             if (user.getPatientProfile() != null) {
                 return user.getPatientProfile().toDto();
@@ -69,7 +68,7 @@ public class CriteriaBuilderSearch implements SearchService {
     public PageResponse<User> userPaginationSearch(UserPageRequest pageDto) {
         Specification<User> spec = UserSpecification.filterUsers(pageDto);
 
-        int page = pageDto.getPage() > 0 ? pageDto.getPage() - 1 : 0;
+        int page = pageDto.getPage();
         int size = 12;
         Pageable pageable = PageRequest.of(page, size);
 
@@ -89,7 +88,7 @@ public class CriteriaBuilderSearch implements SearchService {
     public PageResponse<Document> documentPaginationSearch(DocumentPageRequest pageDto, User patient) {
         Specification<Document> spec = DocumentSpecification.filterDocuments(pageDto, patient);
 
-        int page = pageDto.getPage() > 0 ? pageDto.getPage() - 1 : 0;
+        int page = pageDto.getPage();
         int size = 12;
         Pageable pageable = PageRequest.of(page, size);
 
@@ -109,7 +108,7 @@ public class CriteriaBuilderSearch implements SearchService {
     public PageResponse<Log> logPagination(LogPageRequest pageDto) {
         Specification<Log> spec = LogSpecification.filterLogs(pageDto);
 
-        int page = pageDto.getPage() > 0 ? pageDto.getPage() - 1 : 0;
+        int page = pageDto.getPage();
         int size = 30;
         Pageable pageable = PageRequest.of(page, size);
 

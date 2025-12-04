@@ -16,7 +16,7 @@ public class PatientSpecification {
 
     public static Specification<User> filterUser(PatientsPageRequest pageDto) {
         return (root, query, cb) -> {
-            root.fetch("patientProfile", JoinType.LEFT);
+            root.join("patientProfile", JoinType.LEFT);
             query.distinct(true);
 
             Predicate p = cb.conjunction();

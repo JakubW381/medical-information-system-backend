@@ -91,7 +91,7 @@ public class DoctorController {
     @PostMapping("/update-patient")
     public ResponseEntity<?> updatePatientProfile(@RequestBody PatientProfileDto dto) {
 
-        User patient = userRepository.findById(dto.getPatientId())
+        User patient = userRepository.findByPatientProfileId(dto.getPatientId())
                 .orElseThrow(() -> new UsernameNotFoundException("Patient not found"));
 
         userService.updatePatientProfile(patient,dto);
@@ -180,5 +180,14 @@ public class DoctorController {
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body("Unexpected registration Error");
+    }
+
+    @GetMapping("/doctor")
+    public ResponseEntity<?> getDoctorProfile(){
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        User patient = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("Patient not found"));
+        return ResponseEntity.ok(patient.toDoctorProfileDto());
     }
 }
