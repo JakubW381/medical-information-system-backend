@@ -181,12 +181,11 @@ public class AuthService {
         PasswordGenerator gen = new PasswordGenerator();
 
         CharacterRule lower = new CharacterRule(EnglishCharacterData.LowerCase, 2);
-        CharacterRule upper = new CharacterRule(EnglishCharacterData.UpperCase, 2);
+        CharacterRule upper = new CharacterRule(EnglishCharacterData.UpperCase, 4);
         CharacterRule digit = new CharacterRule(EnglishCharacterData.Digit, 2);
-        CharacterRule special = new CharacterRule(EnglishCharacterData.Special, 2);
-        LengthRule lengthRule = new LengthRule(12);
+        LengthRule lengthRule = new LengthRule(8);
 
-        return gen.generatePassword(lengthRule.getMinimumLength(), Arrays.asList(lower, upper, digit, special));
+        return gen.generatePassword(lengthRule.getMinimumLength(), Arrays.asList(lower, upper, digit));
     }
 
 }
