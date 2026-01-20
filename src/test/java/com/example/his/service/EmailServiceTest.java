@@ -84,20 +84,21 @@ class EmailServiceTest {
     void testRegistrationPasswordTemplate_Default() throws IOException {
         String email = "test@example.com";
         String password = "TempPass123!";
+        String name = "Test User";
 
-        emailService.sendRegistrationPassword(email, password);
+        emailService.sendRegistrationPassword(email, name, password);
 
         verify(mailSender, times(1)).send(any(MimeMessage.class));
 
         Map<String, Object> templateModel = new HashMap<>();
-        templateModel.put("recipientName", extractNameFromEmail(email));
+        templateModel.put("recipientName", name);
         templateModel.put("password", password);
         String htmlContent = processTemplate("registration-password", templateModel);
 
         assertNotNull(htmlContent);
         assertFalse(htmlContent.isEmpty());
         assertTrue(htmlContent.contains(password));
-        assertTrue(htmlContent.contains("Test"));
+        assertTrue(htmlContent.contains(name));
 
         String filename = "registration-password-default.html";
         saveHtmlToFile(filename, htmlContent);
@@ -112,19 +113,20 @@ class EmailServiceTest {
     void testRegistrationPasswordTemplate_Custom() throws IOException {
         String email = "patient@hospital.com";
         String password = "SecurePass456";
+        String name = "Patient Name";
 
-        emailService.sendRegistrationPassword(email, password);
+        emailService.sendRegistrationPassword(email, name, password);
 
         verify(mailSender, times(1)).send(any(MimeMessage.class));
 
         Map<String, Object> templateModel = new HashMap<>();
-        templateModel.put("recipientName", extractNameFromEmail(email));
+        templateModel.put("recipientName", name);
         templateModel.put("password", password);
         String htmlContent = processTemplate("registration-password", templateModel);
 
         assertNotNull(htmlContent);
         assertTrue(htmlContent.contains(password));
-        assertTrue(htmlContent.contains("Patient"));
+        assertTrue(htmlContent.contains(name));
 
         String filename = "registration-password-custom.html";
         saveHtmlToFile(filename, htmlContent);
@@ -140,13 +142,14 @@ class EmailServiceTest {
         String email = "test@example.com";
         String subject = "Test Email";
         String content = "This is a test email message from the Medical Information System. This template can be used for various notifications and communications.";
+        String name = "Test User";
 
-        emailService.sendMail(email, content, subject);
+        emailService.sendMail(email, name, content, subject);
 
         verify(mailSender, times(1)).send(any(MimeMessage.class));
 
         Map<String, Object> templateModel = new HashMap<>();
-        templateModel.put("recipientName", extractNameFromEmail(email));
+        templateModel.put("recipientName", name);
         templateModel.put("content", content);
         templateModel.put("subject", subject);
         templateModel.put("senderName", "Medical Information System Team");
@@ -171,13 +174,14 @@ class EmailServiceTest {
         String email = "doctor@hospital.com";
         String subject = "Appointment Reminder";
         String content = "Your appointment is scheduled for tomorrow at 10:00 AM. Please arrive 15 minutes early.";
+        String name = "Doctor Name";
 
-        emailService.sendMail(email, content, subject);
+        emailService.sendMail(email, name, content, subject);
 
         verify(mailSender, times(1)).send(any(MimeMessage.class));
 
         Map<String, Object> templateModel = new HashMap<>();
-        templateModel.put("recipientName", extractNameFromEmail(email));
+        templateModel.put("recipientName", name);
         templateModel.put("content", content);
         templateModel.put("subject", subject);
         templateModel.put("senderName", "Medical Information System Team");
@@ -186,7 +190,7 @@ class EmailServiceTest {
         assertNotNull(htmlContent);
         assertTrue(htmlContent.contains(subject));
         assertTrue(htmlContent.contains("appointment is scheduled"));
-        assertTrue(htmlContent.contains("Doctor"));
+        assertTrue(htmlContent.contains(name));
 
         String filename = "general-email-custom.html";
         saveHtmlToFile(filename, htmlContent);
@@ -201,12 +205,12 @@ class EmailServiceTest {
     void testAllTemplateVariations() throws IOException {
         System.out.println("\n--- Generating All Template Variations ---\n");
 
-        generateAndTestRegistration("jan.kowalski@hospital.com", "Welcome2024!");
-        generateAndTestRegistration("mary.smith@clinic.org", "SecureP@ss789");
+        generateAndTestRegistration("jan.kowalski@hospital.com", "Jan Kowalski", "Welcome2024!");
+        generateAndTestRegistration("mary.smith@clinic.org", "Mary Smith", "SecureP@ss789");
 
-        generateAndTestGeneralEmail("patient@hospital.com", "Lab Results Available",
+        generateAndTestGeneralEmail("patient@hospital.com", "Patient Name", "Lab Results Available",
                 "Your recent lab test results are now available in the patient portal. Please log in to view them.");
-        generateAndTestGeneralEmail("doctor@hospital.com", "New Patient Assigned",
+        generateAndTestGeneralEmail("doctor@hospital.com", "Doctor Name", "New Patient Assigned",
                 "You have been assigned a new patient: Jan kowalski. Please review their medical history before the first appointment.");
 
         System.out.println("\n===========================================");
@@ -215,12 +219,12 @@ class EmailServiceTest {
         System.out.println("===========================================");
     }
 
-    private void generateAndTestRegistration(String email, String password) throws IOException {
-        emailService.sendRegistrationPassword(email, password);
+    private void generateAndTestRegistration(String email, String name, String password) throws IOException {
+        emailService.sendRegistrationPassword(email, name, password);
         verify(mailSender, atLeastOnce()).send(any(MimeMessage.class));
 
         Map<String, Object> templateModel = new HashMap<>();
-        templateModel.put("recipientName", extractNameFromEmail(email));
+        templateModel.put("recipientName", name);
         templateModel.put("password", password);
 
         String htmlContent = processTemplate("registration-password", templateModel);
@@ -230,12 +234,13 @@ class EmailServiceTest {
         System.out.println("✓ Generated: " + filename);
     }
 
-    private void generateAndTestGeneralEmail(String email, String subject, String content) throws IOException {
-        emailService.sendMail(email, content, subject);
+    private void generateAndTestGeneralEmail(String email, String name, String subject, String content)
+            throws IOException {
+        emailService.sendMail(email, name, content, subject);
         verify(mailSender, atLeastOnce()).send(any(MimeMessage.class));
 
         Map<String, Object> templateModel = new HashMap<>();
-        templateModel.put("recipientName", extractNameFromEmail(email));
+        templateModel.put("recipientName", name);
         templateModel.put("content", content);
         templateModel.put("subject", subject);
         templateModel.put("senderName", "Medical Information System Team");

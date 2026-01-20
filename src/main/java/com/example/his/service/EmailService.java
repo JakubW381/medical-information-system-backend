@@ -26,10 +26,10 @@ public class EmailService {
         this.templateEngine = templateEngine;
     }
 
-    public void sendRegistrationPassword(String to, String password) {
+    public void sendRegistrationPassword(String to, String name, String password) {
         try {
             Map<String, Object> templateModel = new HashMap<>();
-            templateModel.put("recipientName", extractNameFromEmail(to));
+            templateModel.put("recipientName", name);
             templateModel.put("password", password);
 
             String htmlBody = processTemplate("registration-password", templateModel);
@@ -39,10 +39,10 @@ public class EmailService {
         }
     }
 
-    public void sendMail(String to, String content, String subject) {
+    public void sendMail(String to, String name, String content, String subject) {
         try {
             Map<String, Object> templateModel = new HashMap<>();
-            templateModel.put("recipientName", extractNameFromEmail(to));
+            templateModel.put("recipientName", name);
             templateModel.put("content", content);
             templateModel.put("subject", subject);
             templateModel.put("senderName", "Medical Information System Team");

@@ -185,8 +185,13 @@ public class AdminController {
     @PostMapping("/send-message")
     public ResponseEntity<?> sendMessage(@RequestBody MessageRequest messageRequest) {
         try {
+            User user = userRepository.findByEmail(messageRequest.getEmail())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            String name = user.getName() + (user.getLastName() != null ? " " + user.getLastName() : "");
+
             String content = messageRequest.getContent().replace("\n", "<br/>");
-            emailService.sendMail(messageRequest.getEmail(), content, messageRequest.getSubject());
+            emailService.sendMail(messageRequest.getEmail(), name, content, messageRequest.getSubject());
             return ResponseEntity.ok("Message sent successfully");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

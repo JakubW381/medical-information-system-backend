@@ -36,13 +36,12 @@ public class AuthService {
     @Autowired
     private EmailService emailService;
 
-
-    public Cookie login(AuthRequestRequest dto){
+    public Cookie login(AuthRequestRequest dto) {
 
         User user = userRepository.findByEmail(dto.getEmail()).get();
         String jwtToken = jwtService.generateToken(user);
 
-        Cookie cookie = new Cookie("HIS_JWT",jwtToken);
+        Cookie cookie = new Cookie("HIS_JWT", jwtToken);
         cookie.setHttpOnly(true);
         cookie.setSecure(true);
         cookie.setPath("/");
@@ -51,13 +50,13 @@ public class AuthService {
     }
 
     // temporary
-    public RegisterResponse register(RegisterRequestDto registerRequestDto){
+    public RegisterResponse register(RegisterRequestDto registerRequestDto) {
         Optional<User> userOpt = userRepository.findByEmail(registerRequestDto.getEmail());
-        if (userOpt.isPresent()){
+        if (userOpt.isPresent()) {
             return RegisterResponse.EMAIL_EXISTS;
         }
         userOpt = userRepository.findByPesel(registerRequestDto.getPesel());
-        if (userOpt.isPresent()){
+        if (userOpt.isPresent()) {
             return RegisterResponse.PESEL_EXISTS;
         }
 
@@ -79,14 +78,14 @@ public class AuthService {
         return RegisterResponse.SUCCESS;
     }
 
-    public RegisterResponse registerDoctor(DoctorRegisterRequest doctorRegisterRequest){
+    public RegisterResponse registerDoctor(DoctorRegisterRequest doctorRegisterRequest) {
 
         Optional<User> userOpt = userRepository.findByEmail(doctorRegisterRequest.getEmail());
-        if (userOpt.isPresent()){
+        if (userOpt.isPresent()) {
             return RegisterResponse.EMAIL_EXISTS;
         }
         userOpt = userRepository.findByPesel(doctorRegisterRequest.getPesel());
-        if (userOpt.isPresent()){
+        if (userOpt.isPresent()) {
             return RegisterResponse.PESEL_EXISTS;
         }
 
@@ -110,17 +109,18 @@ public class AuthService {
         user.setDoctorProfile(doctorProfile);
 
         userRepository.save(user);
-        emailService.sendRegistrationPassword(doctorRegisterRequest.getEmail(),generatedPassword);
+        emailService.sendRegistrationPassword(doctorRegisterRequest.getEmail(),
+                doctorRegisterRequest.getName() + " " + doctorRegisterRequest.getLastName(), generatedPassword);
         return RegisterResponse.SUCCESS;
     }
 
-    public RegisterResponse registerPatient(PatientRegisterRequest registerRequestDto){
+    public RegisterResponse registerPatient(PatientRegisterRequest registerRequestDto) {
         Optional<User> userOpt = userRepository.findByEmail(registerRequestDto.getEmail());
-        if (userOpt.isPresent()){
+        if (userOpt.isPresent()) {
             return RegisterResponse.EMAIL_EXISTS;
         }
         userOpt = userRepository.findByPesel(registerRequestDto.getPesel());
-        if (userOpt.isPresent()){
+        if (userOpt.isPresent()) {
             return RegisterResponse.PESEL_EXISTS;
         }
 
@@ -150,13 +150,14 @@ public class AuthService {
         user.setPatientProfile(patientProfile);
 
         userRepository.save(user);
-        emailService.sendRegistrationPassword(registerRequestDto.getEmail(), generatedPassword);
+        emailService.sendRegistrationPassword(registerRequestDto.getEmail(),
+                registerRequestDto.getName() + " " + registerRequestDto.getLastName(), generatedPassword);
         return RegisterResponse.SUCCESS;
     }
 
-    public RegisterResponse registerLab(LabRegisterRequest labRegisterRequest){
+    public RegisterResponse registerLab(LabRegisterRequest labRegisterRequest) {
         Optional<User> userOpt = userRepository.findByEmail(labRegisterRequest.getEmail());
-        if (userOpt.isPresent()){
+        if (userOpt.isPresent()) {
             return RegisterResponse.EMAIL_EXISTS;
         }
 
@@ -173,11 +174,12 @@ public class AuthService {
         patientProfile.setUser(user);
 
         userRepository.save(user);
-        emailService.sendRegistrationPassword(labRegisterRequest.getEmail(), generatedPassword);
+        emailService.sendRegistrationPassword(labRegisterRequest.getEmail(), labRegisterRequest.getName(),
+                generatedPassword);
         return RegisterResponse.SUCCESS;
     }
 
-    public String generateTempPassword(){
+    public String generateTempPassword() {
         PasswordGenerator gen = new PasswordGenerator();
 
         CharacterRule lower = new CharacterRule(EnglishCharacterData.LowerCase, 2);
