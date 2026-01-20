@@ -20,6 +20,7 @@ import org.dcm4che3.imageio.plugins.dcm.DicomImageReaderSpi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -63,9 +64,11 @@ public class DocumentService {
         this.cloudinary = cloudinary;
     }
 
+    @CacheEvict(value = "documentPageCache", allEntries = true)
     public void saveFile(MultipartFile file, User patient, User sender) throws Exception {
         String originalFilename = file.getOriginalFilename();
-        if (originalFilename == null) throw new IllegalArgumentException("File must have a name");
+        if (originalFilename == null)
+            throw new IllegalArgumentException("File must have a name");
 
         List<String> tags = new ArrayList<>();
 
@@ -91,13 +94,14 @@ public class DocumentService {
                     try (ImageInputStream iis = ImageIO.createImageInputStream(file.getInputStream())) {
                         reader.setInput(iis);
                         BufferedImage dcmImage = reader.read(0);
-                        if (dcmImage != null) img = Thumbnails.of(dcmImage).size(200, 200).asBufferedImage();
+                        if (dcmImage != null)
+                            img = Thumbnails.of(dcmImage).size(200, 200).asBufferedImage();
 
                         String metadata = reader.getStreamMetadata().getAttributes().toString();
 
                         tags = taggingService.tagDicom(metadata);
 
-                    }finally {
+                    } finally {
                         Log log = new Log();
 
                         log.setAuthor(sender);
@@ -127,7 +131,8 @@ public class DocumentService {
         }
 
         Path uploadDir = Paths.get("uploads/documents", patient.getPesel());
-        if (!Files.exists(uploadDir)) Files.createDirectories(uploadDir);
+        if (!Files.exists(uploadDir))
+            Files.createDirectories(uploadDir);
 
         Path filePath = uploadDir.resolve(System.currentTimeMillis() + "_" + originalFilename);
         Files.write(filePath, encryptBytes(file.getBytes()));
@@ -141,8 +146,6 @@ public class DocumentService {
         documentEntity.setTags(tags);
         documentRepository.save(documentEntity);
     }
-
-
 
     public String getFileBase64(Document document) throws IOException {
         try {
@@ -162,7 +165,8 @@ public class DocumentService {
                     .signed(true)
                     .generate(doc.getThumbnailPublicId());
             dtos.add(doc.toDto(signedUrl));
-        } PageResponse<DocumentTNDto> dtoPage = new PageResponse<>();
+        }
+        PageResponse<DocumentTNDto> dtoPage = new PageResponse<>();
         dtoPage.setItems(dtos);
         dtoPage.setSize(documents.getSize());
         dtoPage.setCurrent(documents.getCurrent());
@@ -194,6 +198,5 @@ public class DocumentService {
         System.arraycopy(secretBytes, 0, key, 0, Math.min(secretBytes.length, 16));
         return key;
     }
-
 
 }
