@@ -7,12 +7,14 @@ import com.example.his.dto.response.PageResponse;
 import com.example.his.model.user.Gender;
 import com.example.his.model.user.PatientProfile;
 import com.example.his.model.user.User;
+import com.example.his.repository.LogRepository;
 import com.example.his.repository.UserRepository;
 import com.example.his.service.search.SearchService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +24,9 @@ public class UserService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private LogRepository logRepository;
 
     @Autowired
     private SearchService searchService;
@@ -67,8 +72,12 @@ public class UserService {
         return searchService.userPaginationSearch(pageDto);
     }
 
+    @Transactional
     @CacheEvict(value = { "userPageCache", "patientPageCache", "patientDtoCache" }, allEntries = true)
     public void deleteUser(Long id) {
-        userRepository.deleteById(id);
+        User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
+        logRepository.deleteByAuthor(user);
+        logRepository.deleteByTarget(user);
+        userRepository.delete(user);
     }
 }
