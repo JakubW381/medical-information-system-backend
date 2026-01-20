@@ -37,7 +37,7 @@ public class AdminController {
     private LogService logService;
 
     @PostMapping("/register-doctor")
-    public ResponseEntity<?> registerDoctor(@RequestBody DoctorRegisterRequest doctorRegisterRequest){
+    public ResponseEntity<?> registerDoctor(@RequestBody DoctorRegisterRequest doctorRegisterRequest) {
 
         RegisterResponse response = authService.registerDoctor(doctorRegisterRequest);
 
@@ -52,7 +52,7 @@ public class AdminController {
                     .body("User with this PESEL already exists");
         }
 
-        if (response == RegisterResponse.SUCCESS){
+        if (response == RegisterResponse.SUCCESS) {
 
             String email = SecurityContextHolder.getContext().getAuthentication().getName();
             Log log = new Log();
@@ -81,7 +81,7 @@ public class AdminController {
     }
 
     @PostMapping("/register-lab")
-    public ResponseEntity<?> registerLab(@RequestBody LabRegisterRequest labRegisterRequest){
+    public ResponseEntity<?> registerLab(@RequestBody LabRegisterRequest labRegisterRequest) {
 
         RegisterResponse response = authService.registerLab(labRegisterRequest);
 
@@ -91,7 +91,7 @@ public class AdminController {
                     .body("User with this email address already exists");
         }
 
-        if (response == RegisterResponse.SUCCESS){
+        if (response == RegisterResponse.SUCCESS) {
 
             String email = SecurityContextHolder.getContext().getAuthentication().getName();
             Log log = new Log();
@@ -173,14 +173,20 @@ public class AdminController {
     }
 
     @PostMapping("/logs")
-    public ResponseEntity<PageResponse<LogRecordDto>> getLogs(@RequestBody LogPageRequest logPageRequest){
+    public ResponseEntity<PageResponse<LogRecordDto>> getLogs(@RequestBody LogPageRequest logPageRequest) {
         PageResponse<LogRecordDto> response = logService.getLogPage(logPageRequest);
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/users")
-    public ResponseEntity<PageResponse<User>> getUsers(@RequestBody UserPageRequest pageRequest){
+    public ResponseEntity<PageResponse<User>> getUsers(@RequestBody UserPageRequest pageRequest) {
         PageResponse<User> response = userService.getUsers(pageRequest);
         return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/users/{id}")
+    public ResponseEntity<?> deleteUser(@PathVariable Long id) {
+        userService.deleteUser(id);
+        return ResponseEntity.ok("User deleted successfully");
     }
 }

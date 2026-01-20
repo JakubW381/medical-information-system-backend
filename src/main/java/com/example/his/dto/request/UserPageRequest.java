@@ -20,4 +20,8 @@ public class UserPageRequest {
     private String pesel;
     private Role role;
     private LocalDateTime createdAfter;
+
+    // Sort fields
+    private String sortBy;
+    private String sortDirection;
 }

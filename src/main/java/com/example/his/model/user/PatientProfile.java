@@ -1,6 +1,7 @@
 package com.example.his.model.user;
 
 import com.example.his.dto.PatientProfileDto;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -18,6 +19,7 @@ public class PatientProfile {
 
     @OneToOne
     @JoinColumn(name = "user_id")
+    @JsonIgnore
     private User user;
 
     private LocalDate dateOfBirth;
@@ -33,7 +35,7 @@ public class PatientProfile {
     private String medications;
     private String insuranceNumber;
 
-    public PatientProfileDto toDto(){
+    public PatientProfileDto toDto() {
         return new PatientProfileDto(
                 id,
                 user.getName(),
@@ -47,14 +49,15 @@ public class PatientProfile {
                 allergies,
                 chronicDiseases,
                 medications,
-                insuranceNumber
-        );
+                insuranceNumber);
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof PatientProfile)) return false;
+        if (this == o)
+            return true;
+        if (!(o instanceof PatientProfile))
+            return false;
         PatientProfile that = (PatientProfile) o;
         return id != null && id.equals(that.id);
     }
@@ -64,4 +67,3 @@ public class PatientProfile {
         return getClass().hashCode();
     }
 }
-

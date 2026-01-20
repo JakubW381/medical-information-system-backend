@@ -10,6 +10,7 @@ import com.example.his.model.user.User;
 import com.example.his.repository.UserRepository;
 import com.example.his.service.search.SearchService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
@@ -25,7 +26,7 @@ public class UserService {
     @Autowired
     private SearchService searchService;
 
-    public void updatePatientProfile(User patient, PatientProfileDto dto){
+    public void updatePatientProfile(User patient, PatientProfileDto dto) {
         PatientProfile profile = patient.getPatientProfile();
 
         profile.getUser().setPesel(dto.getPesel());
@@ -42,9 +43,8 @@ public class UserService {
         userRepository.save(patient);
     }
 
-
     @Cacheable("patientDtoCache")
-    public PageResponse<PatientProfileDto> generateDtos(PageResponse<User> users){
+    public PageResponse<PatientProfileDto> generateDtos(PageResponse<User> users) {
         List<PatientProfileDto> dtos = new ArrayList<>();
 
         PageResponse<PatientProfileDto> dtoPage = new PageResponse<>();
@@ -58,12 +58,17 @@ public class UserService {
     }
 
     @Cacheable("patientPageCache")
-    public PageResponse<PatientProfileDto> getPatients(PatientsPageRequest pageDto){
+    public PageResponse<PatientProfileDto> getPatients(PatientsPageRequest pageDto) {
         return searchService.patientPaginationSearch(pageDto);
     }
 
     @Cacheable("userPageCache")
-    public PageResponse<User> getUsers(UserPageRequest pageDto){
+    public PageResponse<User> getUsers(UserPageRequest pageDto) {
         return searchService.userPaginationSearch(pageDto);
+    }
+
+    @CacheEvict(value = { "userPageCache", "patientPageCache", "patientDtoCache" }, allEntries = true)
+    public void deleteUser(Long id) {
+        userRepository.deleteById(id);
     }
 }

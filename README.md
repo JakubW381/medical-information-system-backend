@@ -138,9 +138,10 @@ shutdown the container
         }
         ```
 5. /users (POST)
-    - Purpose: Attaching a patient profile to existing user
+    - Purpose: Fetch paginated list of users with filtering and sorting
         ```json
         {
+          "page" : 0, 
           "id" : 
           "name" : 
           "lastName" : 
@@ -148,6 +149,8 @@ shutdown the container
           "pesel" : 
           "role" : 
           "createdAfter" :
+          "sortBy": "id | name | email | role | createdAt",
+          "sortDirection": "asc | desc"
         }
         ```
         - Response:
@@ -162,6 +165,12 @@ shutdown the container
           "totalPages" :  
         }
         ```
+6. /users/{id} (DELETE)
+    - Purpose: Permanently delete a user system-wide
+    - Request: Path variable {id}
+    - Response:
+      - 200 OK: "User deleted successfully"
+      - 404 Not Found
 ### UserController (Patient) /api/user
 #### Calling this controller is only possible with Auth Bearer Token with JWT as a cookie or header 
 1. /update-patient (POST)

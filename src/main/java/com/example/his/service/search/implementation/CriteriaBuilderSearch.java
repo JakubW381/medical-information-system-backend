@@ -31,7 +31,8 @@ public class CriteriaBuilderSearch implements SearchService {
     private final DocumentRepository documentRepository;
     private final LogRepository logRepository;
 
-    public CriteriaBuilderSearch(UserRepository userRepository, DocumentRepository documentRepository, LogRepository logRepository) {
+    public CriteriaBuilderSearch(UserRepository userRepository, DocumentRepository documentRepository,
+            LogRepository logRepository) {
         this.userRepository = userRepository;
         this.documentRepository = documentRepository;
         this.logRepository = logRepository;
@@ -70,7 +71,20 @@ public class CriteriaBuilderSearch implements SearchService {
 
         int page = pageDto.getPage();
         int size = 12;
-        Pageable pageable = PageRequest.of(page, size);
+
+        org.springframework.data.domain.Sort sort = org.springframework.data.domain.Sort.unsorted();
+        if (pageDto.getSortBy() != null && !pageDto.getSortBy().isEmpty()) {
+            String direction = pageDto.getSortDirection();
+            if ("desc".equalsIgnoreCase(direction)) {
+                sort = org.springframework.data.domain.Sort.by(pageDto.getSortBy()).descending();
+            } else {
+                sort = org.springframework.data.domain.Sort.by(pageDto.getSortBy()).ascending();
+            }
+        } else {
+            sort = org.springframework.data.domain.Sort.by("id").ascending();
+        }
+
+        Pageable pageable = PageRequest.of(page, size, sort);
 
         Page<User> springPage = userRepository.findAll(spec, pageable);
 
