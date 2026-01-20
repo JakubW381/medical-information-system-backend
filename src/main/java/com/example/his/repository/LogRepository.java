@@ -9,6 +9,6 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface LogRepository extends JpaRepository<Log,Long> , JpaSpecificationExecutor<Log> {
+public interface LogRepository extends JpaRepository<Log, Long>, JpaSpecificationExecutor<Log> {
     List<Log> findByLogType(LogType logType);
 }

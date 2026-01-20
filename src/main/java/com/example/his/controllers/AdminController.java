@@ -8,6 +8,7 @@ import com.example.his.model.logs.Log;
 import com.example.his.model.logs.LogType;
 import com.example.his.model.user.*;
 import com.example.his.repository.UserRepository;
+import com.example.his.service.EmailService;
 import com.example.his.service.LogService;
 import com.example.his.service.user.AuthService;
 import com.example.his.service.user.RegisterResponse;
@@ -29,6 +30,9 @@ public class AdminController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private EmailService emailService;
 
     @Autowired
     private AuthService authService;
@@ -176,6 +180,18 @@ public class AdminController {
     public ResponseEntity<PageResponse<LogRecordDto>> getLogs(@RequestBody LogPageRequest logPageRequest) {
         PageResponse<LogRecordDto> response = logService.getLogPage(logPageRequest);
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/send-message")
+    public ResponseEntity<?> sendMessage(@RequestBody MessageRequest messageRequest) {
+        try {
+            String content = messageRequest.getContent().replace("\n", "<br/>");
+            emailService.sendMail(messageRequest.getEmail(), content, messageRequest.getSubject());
+            return ResponseEntity.ok("Message sent successfully");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error sending message: " + e.getMessage());
+        }
     }
 
     @PostMapping("/users")
