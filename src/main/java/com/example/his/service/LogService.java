@@ -7,6 +7,7 @@ import com.example.his.model.logs.Log;
 import com.example.his.repository.LogRepository;
 import com.example.his.service.search.SearchService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
@@ -22,21 +23,25 @@ public class LogService {
     @Autowired
     private SearchService searchService;
 
-    @Cacheable("logCache")
-    public PageResponse<LogRecordDto> getLogPage(LogPageRequest request){
+    @CacheEvict(value = "logPageCache", allEntries = true)
+    public void saveLog(Log log) {
+        logRepository.save(log);
+    }
+
+    @Cacheable("logPageCache")
+    public PageResponse<LogRecordDto> getLogPage(LogPageRequest request) {
         PageResponse<Log> logPage = searchService.logPagination(request);
 
         List<LogRecordDto> recordDtos = new ArrayList<>();
 
-        for(Log log : logPage.getItems()){
+        for (Log log : logPage.getItems()) {
             LogRecordDto recordDto = new LogRecordDto(
                     log.getId(),
-                    log.getAuthor().toSafeUserDto(),
+                    log.getAuthor() != null ? log.getAuthor().toSafeUserDto() : null,
                     log.getLogType(),
-                    log.getTarget().toSafeUserDto(),
+                    log.getTarget() != null ? log.getTarget().toSafeUserDto() : null,
                     log.getDescription(),
-                    log.getTimestamp()
-            );
+                    log.getTimestamp());
             recordDtos.add(recordDto);
         }
 
@@ -49,9 +54,5 @@ public class LogService {
         logDtoPages.setCurrent(logPage.getCurrent());
 
         return logDtoPages;
-    }
-
-    public void saveLog(Log log){
-        logRepository.save(log);
     }
 }

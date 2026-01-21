@@ -4,11 +4,14 @@ import com.example.his.config.util.JWTService;
 import com.example.his.dto.SafeUserDto;
 import com.example.his.dto.request.AuthRequestRequest;
 import com.example.his.dto.RegisterRequestDto;
+import com.example.his.model.logs.Log;
+import com.example.his.model.logs.LogType;
 import com.example.his.model.user.Role;
 import com.example.his.model.user.User;
 import com.example.his.repository.UserRepository;
 import com.example.his.service.user.RegisterResponse;
 import com.example.his.service.user.AuthService;
+import com.example.his.service.LogService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,18 +46,37 @@ public class AuthController {
     private AuthService authService;
 
     @Autowired
+    private LogService logService;
+
+    @Autowired
     private UserRepository userRepository;
 
-
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody AuthRequestRequest authRequestDto , HttpServletResponse response){
+    public ResponseEntity<?> login(@RequestBody AuthRequestRequest authRequestDto, HttpServletResponse response) {
         Authentication authentication = authManager
-                .authenticate(new UsernamePasswordAuthenticationToken(authRequestDto.getEmail(),authRequestDto.getPassword()));
+                .authenticate(new UsernamePasswordAuthenticationToken(authRequestDto.getEmail(),
+                        authRequestDto.getPassword()));
 
-        if (authentication.isAuthenticated()){
+        if (authentication.isAuthenticated()) {
             response.addCookie(authService.login(authRequestDto));
+
+            // Log successful login
+            try {
+                User user = userRepository.findByEmail(authRequestDto.getEmail()).orElse(null);
+                if (user != null) {
+                    Log log = new Log();
+                    log.setAuthor(user);
+                    log.setTarget(user);
+                    log.setLogType(LogType.LOGIN_ATTEMPT);
+                    log.setDescription("User logged in successfully");
+                    logService.saveLog(log);
+                }
+            } catch (Exception e) {
+                // Ignore logging errors to not block login
+            }
+
             return ResponseEntity.ok("Logged In");
-        }else{
+        } else {
             return new ResponseEntity<>("Authentication Error", HttpStatus.UNAUTHORIZED);
         }
     }
@@ -71,7 +93,7 @@ public class AuthController {
 
     // temporary
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody RegisterRequestDto registerRequestDto){
+    public ResponseEntity<?> register(@RequestBody RegisterRequestDto registerRequestDto) {
         RegisterResponse response = authService.register(registerRequestDto);
         if (response == RegisterResponse.EMAIL_EXISTS) {
             return ResponseEntity
@@ -83,7 +105,7 @@ public class AuthController {
                     .status(HttpStatus.CONFLICT)
                     .body("User with this PESEL already exists");
         }
-        if (response == RegisterResponse.SUCCESS){
+        if (response == RegisterResponse.SUCCESS) {
             return ResponseEntity
                     .status(HttpStatus.CREATED)
                     .body("Signed up successfully");
@@ -119,7 +141,6 @@ public class AuthController {
         String email = authentication.getName();
         SafeUserDto dto = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User Not Found")).toSafeUserDto();
-
 
         return ResponseEntity.ok(dto);
     }

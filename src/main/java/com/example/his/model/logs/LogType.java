@@ -4,4 +4,7 @@ public enum LogType {
     DOCUMENT_SAVE,
     DOCUMENT_SHARE,
     USER_REGISTERED,
+    USER_UPDATED,
+    USER_DELETED,
+    LOGIN_ATTEMPT
 }

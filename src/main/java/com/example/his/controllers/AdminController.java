@@ -144,6 +144,18 @@ public class AdminController {
         user.setRole(Role.ROLE_DOCTOR);
         userRepository.save(user);
 
+        // Log the action
+        String adminEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        User admin = userRepository.findByEmail(adminEmail).orElse(null);
+        if (admin != null) {
+            Log log = new Log();
+            log.setAuthor(admin);
+            log.setTarget(user);
+            log.setLogType(LogType.USER_UPDATED);
+            log.setDescription("Attach Doctor Profile: " + dto.getSpecialization());
+            logService.saveLog(log);
+        }
+
         return ResponseEntity.ok("Doctor profile saved successfully");
     }
 
@@ -172,6 +184,18 @@ public class AdminController {
         user.setPatientProfile(profile);
 
         userRepository.save(user);
+
+        // Log the action
+        String adminEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        User admin = userRepository.findByEmail(adminEmail).orElse(null);
+        if (admin != null) {
+            Log log = new Log();
+            log.setAuthor(admin);
+            log.setTarget(user);
+            log.setLogType(LogType.USER_UPDATED);
+            log.setDescription("Attach Patient Profile");
+            logService.saveLog(log);
+        }
 
         return ResponseEntity.ok("Patient profile saved successfully");
     }
@@ -207,7 +231,23 @@ public class AdminController {
 
     @DeleteMapping("/users/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable Long id) {
+        User targetUser = userRepository.findById(id).orElse(null);
+        String targetInfo = targetUser != null ? targetUser.getEmail() : "ID: " + id;
+
         userService.deleteUser(id);
+
+        String adminEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        User admin = userRepository.findByEmail(adminEmail).orElse(null);
+
+        if (admin != null) {
+            Log log = new Log();
+            log.setAuthor(admin);
+            log.setTarget(null); // Target is gone
+            log.setLogType(LogType.USER_DELETED);
+            log.setDescription("Deleted User: " + targetInfo);
+            logService.saveLog(log);
+        }
+
         return ResponseEntity.ok("User deleted successfully");
     }
 }
