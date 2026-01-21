@@ -4,6 +4,7 @@ import com.example.his.dto.*;
 import com.example.his.dto.request.DocumentPageRequest;
 import com.example.his.dto.request.PatientRegisterRequest;
 import com.example.his.dto.request.PatientsPageRequest;
+import com.example.his.dto.request.MessageRequest;
 import com.example.his.dto.response.PageResponse;
 import com.example.his.model.Document;
 import com.example.his.model.logs.Log;
@@ -17,6 +18,7 @@ import com.example.his.service.LogService;
 import com.example.his.service.user.AuthService;
 import com.example.his.service.user.RegisterResponse;
 import com.example.his.service.user.UserService;
+import com.example.his.service.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,7 +29,6 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
-
 
 @RestController
 @RequestMapping("/api/doc")
@@ -51,15 +52,36 @@ public class DoctorController {
     @Autowired
     private LogService logService;
 
+    @Autowired
+    private EmailService emailService;
+
+    @PostMapping("/send-message")
+    public ResponseEntity<?> sendMessage(@RequestBody MessageRequest messageRequest) {
+        try {
+            User user = userRepository.findByEmail(messageRequest.getEmail())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            String name = user.getName() + (user.getLastName() != null ? " " + user.getLastName() : "");
+
+            String content = messageRequest.getContent().replace("\n", "<br/>");
+            emailService.sendMail(messageRequest.getEmail(), name, content, messageRequest.getSubject());
+            return ResponseEntity.ok("Message sent successfully");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error sending message: " + e.getMessage());
+        }
+    }
+
     @GetMapping("/patient/{id}")
-    public ResponseEntity<?> getPatientProfile(@PathVariable Long id){
+    public ResponseEntity<?> getPatientProfile(@PathVariable Long id) {
         User patient = userRepository.findByPatientProfileId(id)
                 .orElseThrow(() -> new UsernameNotFoundException("Patient not found"));
         return ResponseEntity.ok(patient.getPatientProfile().toDto());
     }
 
     @PostMapping("/patient/documents/{id}")
-    public ResponseEntity<PageResponse<DocumentTNDto>> getPatientDocuments(@PathVariable Long id, @RequestBody DocumentPageRequest pageDto){
+    public ResponseEntity<PageResponse<DocumentTNDto>> getPatientDocuments(@PathVariable Long id,
+            @RequestBody DocumentPageRequest pageDto) {
         User patient = userRepository.findByPatientProfileId(id)
                 .orElseThrow(() -> new UsernameNotFoundException("Patient not found"));
 
@@ -70,7 +92,7 @@ public class DoctorController {
     }
 
     @GetMapping("/patient/document/{id}")
-    public ResponseEntity<String> getPatientDocument(@PathVariable Long id){
+    public ResponseEntity<String> getPatientDocument(@PathVariable Long id) {
         Document document = documentRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("No document with this Id"));
 
@@ -83,7 +105,7 @@ public class DoctorController {
     }
 
     @PostMapping("/patients")
-    public ResponseEntity<PageResponse<PatientProfileDto>> getPatients(@RequestBody PatientsPageRequest pageDto){
+    public ResponseEntity<PageResponse<PatientProfileDto>> getPatients(@RequestBody PatientsPageRequest pageDto) {
         PageResponse<PatientProfileDto> dtos = userService.getPatients(pageDto);
         return ResponseEntity.ok(dtos);
     }
@@ -94,7 +116,7 @@ public class DoctorController {
         User patient = userRepository.findByPatientProfileId(dto.getPatientId())
                 .orElseThrow(() -> new UsernameNotFoundException("Patient not found"));
 
-        userService.updatePatientProfile(patient,dto);
+        userService.updatePatientProfile(patient, dto);
 
         return ResponseEntity.ok("Patient profile updated");
     }
@@ -117,14 +139,14 @@ public class DoctorController {
     }
 
     @PostMapping("/patient/{id}/upload")
-    public ResponseEntity<?> uploadFiles(@PathVariable Long id , @RequestParam("files") MultipartFile[] files) {
+    public ResponseEntity<?> uploadFiles(@PathVariable Long id, @RequestParam("files") MultipartFile[] files) {
 
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
 
         User patient = userRepository.findByPatientProfileId(id)
                 .orElseThrow(() -> new UsernameNotFoundException("Patient not found"));
         User doctor = userRepository.findByEmail(email)
-                        .orElseThrow(() -> new UsernameNotFoundException("Doctor not found"));
+                .orElseThrow(() -> new UsernameNotFoundException("Doctor not found"));
 
         for (MultipartFile file : files) {
             try {
@@ -138,9 +160,8 @@ public class DoctorController {
         return ResponseEntity.ok("Files processed");
     }
 
-
     @PostMapping("/register-patient")
-    public ResponseEntity<?> registerPatient(@RequestBody PatientRegisterRequest patientRegisterRequest){
+    public ResponseEntity<?> registerPatient(@RequestBody PatientRegisterRequest patientRegisterRequest) {
 
         RegisterResponse response = authService.registerPatient(patientRegisterRequest);
 
@@ -155,7 +176,7 @@ public class DoctorController {
                     .body("User with this PESEL already exists");
         }
 
-        if (response == RegisterResponse.SUCCESS){
+        if (response == RegisterResponse.SUCCESS) {
 
             String email = SecurityContextHolder.getContext().getAuthentication().getName();
             Log log = new Log();
@@ -183,7 +204,7 @@ public class DoctorController {
     }
 
     @GetMapping("/doctor")
-    public ResponseEntity<?> getDoctorProfile(){
+    public ResponseEntity<?> getDoctorProfile() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
 
         User patient = userRepository.findByEmail(email)

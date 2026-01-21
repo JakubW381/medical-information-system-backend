@@ -41,6 +41,7 @@ public class PatientProfile {
                 user.getName(),
                 user.getLastName(),
                 user.getPesel(),
+                user.getEmail(),
                 dateOfBirth,
                 gender.name(),
                 address,
