@@ -156,6 +156,15 @@ public class DocumentService {
         }
     }
 
+    public byte[] getFileBytes(Document document) throws IOException {
+        try {
+            byte[] encrypted = Files.readAllBytes(Paths.get(document.getFilePath()));
+            return decryptBytes(encrypted);
+        } catch (Exception e) {
+            throw new IOException("Failed to decrypt file", e);
+        }
+    }
+
     public PageResponse<DocumentTNDto> generateDtos(PageResponse<Document> documents) {
         List<DocumentTNDto> dtos = new ArrayList<>();
         for (Document doc : documents.getItems()) {
