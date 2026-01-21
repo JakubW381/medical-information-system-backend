@@ -31,6 +31,7 @@ public class UserService {
     @Autowired
     private SearchService searchService;
 
+    @CacheEvict(value = { "patientPageCache", "patientDtoCache" }, allEntries = true)
     public void updatePatientProfile(User patient, PatientProfileDto dto) {
         PatientProfile profile = patient.getPatientProfile();
 
