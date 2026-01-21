@@ -13,6 +13,8 @@ public class MedicalExaminationResponse {
     private Long id;
     private String patientName;
     private String patientLastName;
+    private String doctorName;
+    private String doctorLastName;
     private LocalDateTime date;
     private String description;
 }

@@ -31,7 +31,15 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
-
+import com.example.his.dto.request.MedicalExaminationsPageRequest;
+import com.example.his.dto.response.MedicalExaminationResponse;
+import com.example.his.model.MedicalExamination;
+import com.example.his.repository.MedicalExaminationRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import java.util.List;
+import java.util.stream.Collectors;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -65,6 +73,8 @@ public class UserController {
     @Autowired
     private LogService logService;
 
+    @Autowired
+    private MedicalExaminationRepository medicalExaminationRepository;
 
     @PostMapping("/update-patient")
     public ResponseEntity<?> updatePatientProfile(@RequestBody PatientProfileDto dto) {
@@ -72,20 +82,20 @@ public class UserController {
 
         User patient = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Patient not found"));
-        userService.updatePatientProfile(patient,dto);
+        userService.updatePatientProfile(patient, dto);
         return ResponseEntity.ok("Patient profile updated");
     }
 
     @GetMapping("/patient")
-    public ResponseEntity<?> getPatientProfile(){
+    public ResponseEntity<?> getPatientProfile() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
 
         User patient = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Patient not found"));
 
-        if (patient.getPatientProfile() != null){
+        if (patient.getPatientProfile() != null) {
             return ResponseEntity.ok(patient.getPatientProfile().toDto());
-        }else{
+        } else {
             return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No patientProfile found");
         }
     }
@@ -110,9 +120,8 @@ public class UserController {
         return ResponseEntity.ok("Files processed");
     }
 
-
     @PostMapping("/gallery")
-    public ResponseEntity<PageResponse<DocumentTNDto>> showGallery(@RequestBody DocumentPageRequest pageDto){
+    public ResponseEntity<PageResponse<DocumentTNDto>> showGallery(@RequestBody DocumentPageRequest pageDto) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         System.out.println(pageDto);
         User patient = userRepository.findByEmail(email)
@@ -125,7 +134,7 @@ public class UserController {
     }
 
     @PostMapping("/pass-change")
-    public ResponseEntity<?> passChange(@RequestBody PassChangeRequest passChangeRequest){
+    public ResponseEntity<?> passChange(@RequestBody PassChangeRequest passChangeRequest) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
@@ -136,9 +145,8 @@ public class UserController {
         return ResponseEntity.ok("Password Changed");
     }
 
-
     @GetMapping("/document/{id}")
-    public ResponseEntity<String> getDocument(@PathVariable Long id){
+    public ResponseEntity<String> getDocument(@PathVariable Long id) {
 
         Document document = documentRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("No document with this Id"));
@@ -147,7 +155,7 @@ public class UserController {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-        if (!document.getPatient().getId().equals(user.getPatientProfile().getId())){
+        if (!document.getPatient().getId().equals(user.getPatientProfile().getId())) {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
         try {
@@ -159,7 +167,7 @@ public class UserController {
     }
 
     @GetMapping("/document/{id}/share")
-    public ResponseEntity<?> shareDocument(@PathVariable Long id){
+    public ResponseEntity<?> shareDocument(@PathVariable Long id) {
         Document document = documentRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("No document with this Id"));
 
@@ -167,7 +175,7 @@ public class UserController {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-        if (!document.getPatient().getId().equals(user.getPatientProfile().getId())){
+        if (!document.getPatient().getId().equals(user.getPatientProfile().getId())) {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
 
@@ -200,10 +208,45 @@ public class UserController {
     }
 
     @GetMapping("/doctor/{id}")
-    public ResponseEntity<?> getDoctorProfile(@PathVariable Long id){
+    public ResponseEntity<?> getDoctorProfile(@PathVariable Long id) {
         User doctor = userRepository.findByDoctorProfileId(id)
                 .orElseThrow(() -> new UsernameNotFoundException("Doctor not found"));
         return ResponseEntity.ok(doctor.getDoctorProfile());
     }
 
+    @PostMapping("/examinations")
+    public ResponseEntity<PageResponse<MedicalExaminationResponse>> getExaminations(
+            @RequestBody MedicalExaminationsPageRequest request) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        Sort sort = Sort.by(Sort.Direction.fromString(request.getSortDirection()), request.getSortBy());
+        PageRequest pageRequest = PageRequest.of(request.getPage(), request.getSize(), sort);
+
+        Page<MedicalExamination> page = medicalExaminationRepository.findByPatientAndSearch(
+                user.getPatientProfile(),
+                request.getSearch(),
+                pageRequest);
+
+        List<MedicalExaminationResponse> items = page.getContent().stream()
+                .map(m -> new MedicalExaminationResponse(
+                        m.getId(),
+                        m.getPatient().getUser().getName(),
+                        m.getPatient().getUser().getLastName(),
+                        m.getDoctor().getUser().getName(),
+                        m.getDoctor().getUser().getLastName(),
+                        m.getDate(),
+                        m.getDescription()))
+                .collect(Collectors.toList());
+
+        PageResponse<MedicalExaminationResponse> response = new PageResponse<>();
+        response.setItems(items);
+        response.setSize(page.getSize());
+        response.setCurrent(page.getNumber());
+        response.setTotalElements(page.getTotalElements());
+        response.setTotalPages(page.getTotalPages());
+
+        return ResponseEntity.ok(response);
+    }
 }

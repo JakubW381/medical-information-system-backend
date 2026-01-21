@@ -20,6 +20,13 @@ public interface MedicalExaminationRepository extends JpaRepository<MedicalExami
                         @Param("search") String search,
                         Pageable pageable);
 
+        @Query("SELECT m FROM MedicalExamination m WHERE m.patient = :patient " +
+                        "AND (:search IS NULL OR LOWER(m.doctor.user.name) LIKE LOWER(CONCAT('%', :search, '%')) " +
+                        "OR LOWER(m.doctor.user.lastName) LIKE LOWER(CONCAT('%', :search, '%')))")
+        Page<MedicalExamination> findByPatientAndSearch(@Param("patient") PatientProfile patient,
+                        @Param("search") String search,
+                        Pageable pageable);
+
         long countByDoctorAndPatient(DoctorProfile doctor, PatientProfile patient);
 
         void deleteByDoctorAndPatient(DoctorProfile doctor, PatientProfile patient);

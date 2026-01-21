@@ -300,6 +300,8 @@ public class DoctorController {
                         m.getId(),
                         m.getPatient().getUser().getName(),
                         m.getPatient().getUser().getLastName(),
+                        m.getDoctor().getUser().getName(),
+                        m.getDoctor().getUser().getLastName(),
                         m.getDate(),
                         m.getDescription()))
                 .collect(Collectors.toList());
