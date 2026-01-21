@@ -5,8 +5,10 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Data
 @Entity
@@ -34,6 +36,11 @@ public class PatientProfile {
     private String chronicDiseases;
     private String medications;
     private String insuranceNumber;
+
+    @ManyToMany(mappedBy = "assignedPatients")
+    @JsonIgnore
+    @ToString.Exclude
+    private List<DoctorProfile> assignedDoctors;
 
     public PatientProfileDto toDto() {
         return new PatientProfileDto(

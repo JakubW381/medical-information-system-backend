@@ -3,6 +3,9 @@ package com.example.his.model.user;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.ToString;
+
+import java.util.List;
 
 @Data
 @Entity
@@ -21,5 +24,11 @@ public class DoctorProfile {
     private String department;
     private String position;
     private String professionalLicenseNumber;
+
+    @ManyToMany
+    @JoinTable(name = "doctor_patient", joinColumns = @JoinColumn(name = "doctor_id"), inverseJoinColumns = @JoinColumn(name = "patient_id"))
+    @JsonIgnore
+    @ToString.Exclude
+    private List<PatientProfile> assignedPatients;
 
 }

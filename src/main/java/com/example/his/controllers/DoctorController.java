@@ -4,14 +4,20 @@ import com.example.his.dto.*;
 import com.example.his.dto.request.DocumentPageRequest;
 import com.example.his.dto.request.PatientRegisterRequest;
 import com.example.his.dto.request.PatientsPageRequest;
+import com.example.his.dto.request.MedicalExaminationRequest;
+import com.example.his.dto.request.MedicalExaminationsPageRequest;
 import com.example.his.dto.request.MessageRequest;
+import com.example.his.dto.response.MedicalExaminationResponse;
 import com.example.his.dto.response.PageResponse;
 import com.example.his.model.Document;
+import com.example.his.model.MedicalExamination;
 import com.example.his.model.logs.Log;
 import com.example.his.model.logs.LogType;
 import com.example.his.model.user.DoctorProfile;
 import com.example.his.model.user.User;
+import com.example.his.model.user.PatientProfile;
 import com.example.his.repository.DocumentRepository;
+import com.example.his.repository.MedicalExaminationRepository;
 import com.example.his.repository.UserRepository;
 import com.example.his.service.DocumentService;
 import com.example.his.service.LogService;
@@ -20,6 +26,9 @@ import com.example.his.service.user.RegisterResponse;
 import com.example.his.service.user.UserService;
 import com.example.his.service.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -29,6 +38,8 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/doc")
@@ -48,6 +59,9 @@ public class DoctorController {
 
     @Autowired
     private DocumentRepository documentRepository;
+
+    @Autowired
+    private MedicalExaminationRepository medicalExaminationRepository;
 
     @Autowired
     private LogService logService;
@@ -210,5 +224,138 @@ public class DoctorController {
         User patient = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Patient not found"));
         return ResponseEntity.ok(patient.toDoctorProfileDto());
+    }
+
+    @PostMapping("/assign-patient/{patientId}")
+    public ResponseEntity<?> assignPatient(@PathVariable Long patientId) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User doctorUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("Doctor not found"));
+
+        User patientUser = userRepository.findByPatientProfileId(patientId)
+                .orElseThrow(() -> new UsernameNotFoundException("Patient not found"));
+
+        DoctorProfile doctorProfile = doctorUser.getDoctorProfile();
+        PatientProfile patientProfile = patientUser.getPatientProfile();
+
+        if (!doctorProfile.getAssignedPatients().contains(patientProfile)) {
+            doctorProfile.getAssignedPatients().add(patientProfile);
+            userRepository.save(doctorUser);
+        }
+
+        return ResponseEntity.ok("Patient assigned successfully");
+    }
+
+    @GetMapping("/assigned-patients")
+    public ResponseEntity<List<PatientProfileDto>> getAssignedPatients() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User doctorUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("Doctor not found"));
+
+        List<PatientProfileDto> patients = doctorUser.getDoctorProfile().getAssignedPatients().stream()
+                .map(PatientProfile::toDto)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(patients);
+    }
+
+    @PostMapping("/patient/{patientId}/examination")
+    public ResponseEntity<?> createExamination(@PathVariable Long patientId,
+            @RequestBody MedicalExaminationRequest request) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User doctorUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("Doctor not found"));
+
+        User patientUser = userRepository.findByPatientProfileId(patientId)
+                .orElseThrow(() -> new UsernameNotFoundException("Patient not found"));
+
+        MedicalExamination examination = new MedicalExamination();
+        examination.setDoctor(doctorUser.getDoctorProfile());
+        examination.setPatient(patientUser.getPatientProfile());
+        examination.setDate(request.getDate());
+        examination.setDescription(request.getDescription());
+
+        medicalExaminationRepository.save(examination);
+
+        return ResponseEntity.ok("Examination created successfully");
+    }
+
+    @PostMapping("/examinations")
+    public ResponseEntity<PageResponse<MedicalExaminationResponse>> getExaminations(
+            @RequestBody MedicalExaminationsPageRequest request) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User doctorUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("Doctor not found"));
+
+        Sort sort = Sort.by(Sort.Direction.fromString(request.getSortDirection()), request.getSortBy());
+        PageRequest pageRequest = PageRequest.of(request.getPage(), request.getSize(), sort);
+
+        Page<MedicalExamination> page = medicalExaminationRepository.findByDoctorAndSearch(
+                doctorUser.getDoctorProfile(),
+                request.getSearch(),
+                pageRequest);
+
+        List<MedicalExaminationResponse> items = page.getContent().stream()
+                .map(m -> new MedicalExaminationResponse(
+                        m.getId(),
+                        m.getPatient().getUser().getName(),
+                        m.getPatient().getUser().getLastName(),
+                        m.getDate(),
+                        m.getDescription()))
+                .collect(Collectors.toList());
+
+        PageResponse<MedicalExaminationResponse> response = new PageResponse<>();
+        response.setItems(items);
+        response.setSize(page.getSize());
+        response.setCurrent(page.getNumber());
+        response.setTotalElements(page.getTotalElements());
+        response.setTotalPages(page.getTotalPages());
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/patient/{patientId}/assignment-status")
+    public ResponseEntity<?> getAssignmentStatus(@PathVariable Long patientId) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User doctorUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("Doctor not found"));
+
+        User patientUser = userRepository.findByPatientProfileId(patientId)
+                .orElseThrow(() -> new UsernameNotFoundException("Patient not found"));
+
+        DoctorProfile doctorProfile = doctorUser.getDoctorProfile();
+        PatientProfile patientProfile = patientUser.getPatientProfile();
+
+        boolean isAssigned = doctorProfile.getAssignedPatients().contains(patientProfile);
+        long examCount = medicalExaminationRepository.countByDoctorAndPatient(doctorProfile, patientProfile);
+
+        java.util.Map<String, Object> response = new java.util.HashMap<>();
+        response.put("assigned", isAssigned);
+        response.put("examCount", examCount);
+
+        return ResponseEntity.ok(response);
+    }
+
+    @org.springframework.transaction.annotation.Transactional
+    @PostMapping("/unassign-patient/{patientId}")
+    public ResponseEntity<?> unassignPatient(@PathVariable Long patientId) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User doctorUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("Doctor not found"));
+
+        User patientUser = userRepository.findByPatientProfileId(patientId)
+                .orElseThrow(() -> new UsernameNotFoundException("Patient not found"));
+
+        DoctorProfile doctorProfile = doctorUser.getDoctorProfile();
+        PatientProfile patientProfile = patientUser.getPatientProfile();
+
+        if (doctorProfile.getAssignedPatients().contains(patientProfile)) {
+            doctorProfile.getAssignedPatients().remove(patientProfile);
+            userRepository.save(doctorUser);
+            medicalExaminationRepository.deleteByDoctorAndPatient(doctorProfile, patientProfile);
+            return ResponseEntity.ok("Patient unassigned and examinations deleted");
+        }
+
+        return ResponseEntity.badRequest().body("Patient was not assigned");
     }
 }
