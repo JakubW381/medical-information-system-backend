@@ -46,6 +46,8 @@ public class AuthService {
         cookie.setSecure(true);
         cookie.setPath("/");
         cookie.setMaxAge(36000);
+        //temp
+        cookie.setAttribute("SameSite", "None");
         return cookie;
     }
 
@@ -191,3 +193,4 @@ public class AuthService {
     }
 
 }
+
